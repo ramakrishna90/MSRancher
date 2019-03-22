@@ -1,0 +1,102 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: activemq
+  labels:
+    app: activemq
+    tier: mq
+    role: master
+spec:
+  ports:
+    - name: activemq
+      protocol: TCP
+      port: 61616
+      targetPort: 61616
+  selector:
+    app: activemq
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: activemq
+spec:
+  replicas: 0
+  selector:
+    matchLabels:
+      app: activemq
+      tier: mq
+      role: master
+  template:
+    metadata:
+      name: activemq
+      labels:
+        app: activemq
+        tier: mq
+        role: master
+    spec:
+      serviceAccountName: {{.Release.Namespace}}-sa
+      volumes:
+      - name: data
+        persistentVolumeClaim:
+          claimName: activemq
+      containers:
+      - name: activemq
+        image: {{required "Image Info is mandatory! Read the Project Documentation to understand what and where to configure." .Values.image.ACTIVEMQ }}
+        imagePullPolicy: IfNotPresent
+        ports:
+        - name: activemq
+          containerPort: 61616
+        env:
+        - name: ACTIVEMQ_MAX_MEM
+          {{- if (eq "Small" .Values.resourceUnit.size) }}
+          value: {{ .Values.resourceUnit.small.memory.max.ACTIVEMQ | quote }}
+          {{- else if (eq "Medium" .Values.resourceUnit.size) }}
+          value: {{ .Values.resourceUnit.medium.memory.max.ACTIVEMQ | quote }}
+          {{- else if (eq "Large" .Values.resourceUnit.size) }}
+          value: {{ .Values.resourceUnit.large.memory.max.ACTIVEMQ | quote }}
+          {{- else if (eq "Xlarge" .Values.resourceUnit.size) }}
+          value: {{ .Values.resourceUnit.xlarge.memory.max.ACTIVEMQ | quote }}
+          {{- end }}
+        resources:
+          limits:
+            {{- if (eq "Small" .Values.resourceUnit.size) }}
+            memory: {{ .Values.resourceUnit.small.memory.max.ACTIVEMQ }}Mi
+            cpu: {{ .Values.resourceUnit.small.cpu.max.ACTIVEMQ }}m
+            {{- else if (eq "Medium" .Values.resourceUnit.size) }}
+            memory: {{ .Values.resourceUnit.medium.memory.max.ACTIVEMQ }}Mi
+            cpu: {{ .Values.resourceUnit.medium.cpu.max.ACTIVEMQ }}m
+            {{- else if (eq "Large" .Values.resourceUnit.size) }}
+            memory: {{ .Values.resourceUnit.large.memory.max.ACTIVEMQ }}Mi
+            cpu: {{ .Values.resourceUnit.large.cpu.max.ACTIVEMQ }}m
+            {{- else if (eq "Xlarge" .Values.resourceUnit.size) }}
+            memory: {{ .Values.resourceUnit.xlarge.memory.max.ACTIVEMQ }}Mi
+            cpu: {{ .Values.resourceUnit.xlarge.cpu.max.ACTIVEMQ }}m
+            {{- end }}
+        volumeMounts:
+        - mountPath: /apache-activemq/data
+          subPath: activemq
+          name: data
+        - mountPath: /apache-activemq/conf/log4j.properties
+          subPath: conf/log4j.properties
+          name: data
+        - mountPath: /apache-activemq/conf/jetty.xml
+          subPath: conf/jetty.xml
+          name: data
+        - mountPath: /apache-activemq/conf/activemq.xml
+          subPath: conf/activemq.xml
+          name: data
+        - mountPath: /apache-activemq/tmp
+          name: data
+          subPath: activemq_tmp
+        - mountPath: /tmp
+          name: data
+          subPath: tmp
+        securityContext:
+          readOnlyRootFilesystem: true
+      imagePullSecrets:
+        - name: container-registry-key
+      securityContext:
+        runAsUser: 1000
+        runAsNonRoot: true
+        fsGroup: 1000
+      allowedCapabilities: null

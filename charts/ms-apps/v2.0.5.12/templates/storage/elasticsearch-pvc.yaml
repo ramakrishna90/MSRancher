@@ -1,0 +1,20 @@
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+ name: elasticsearch
+ annotations:
+   volume.beta.kubernetes.io/storage-class: ms-storage-class
+spec:
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      {{- if (eq "Small" .Values.resourceUnit.size) }}
+      storage: {{ .Values.resourceUnit.small.storage.size.ELASTICSEARCH }}Gi
+      {{- else if (eq "Medium" .Values.resourceUnit.size) }}
+      storage: {{ .Values.resourceUnit.medium.storage.size.ELASTICSEARCH }}Gi
+      {{- else if (eq "Large" .Values.resourceUnit.size) }}
+      storage: {{ .Values.resourceUnit.large.storage.size.ELASTICSEARCH }}Gi
+      {{- else if (eq "Xlarge" .Values.resourceUnit.size) }}
+      storage: {{ .Values.resourceUnit.xlarge.storage.size.ELASTICSEARCH }}Gi
+      {{- end }}

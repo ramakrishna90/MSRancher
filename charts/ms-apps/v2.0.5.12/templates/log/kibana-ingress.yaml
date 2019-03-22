@@ -1,0 +1,12 @@
+apiVersion: extensions/v1beta1
+kind: Ingress
+metadata:
+  name: kibana-{{ .Release.Namespace }}
+spec:
+  rules:
+  - host: kibana.{{ .Release.Namespace }}.k8s.metricstream.com
+    http:
+      paths:
+      - backend:
+          serviceName: kibana-logging
+          servicePort: 5601

@@ -1,0 +1,54 @@
+categories:
+- Input
+questions:
+- variable: cloudService.provider
+  default: EKS
+  description: |
+    Where do you intend to deploy the Application?
+      BM -> Bare Metal
+      VM -> Virtual Machine
+      GKE -> Google Cloud Kubernetes Engine
+      EKS -> Amazon Elastic Container Service for Kubernetes
+      AKS -> Microsoft Azure Kubernetes Service
+  type: enum
+  group: Kubernetes Cluster
+  options:
+    - BM
+    - VM
+    - GKE
+    - EKS
+    - AKS
+  label: Select Kubernetes Cluster Resources?
+  required: true
+- variable: resourceUnit.size
+  default: Medium
+  description: |
+    What is the resource unit you would like to allocate for the deployment?
+      Small -> 4 CPU Core & 16 GB RAM
+      Medium -> 8 CPU Core & 32 GB RAM
+      Large -> 16 CPU Core & 64 GB RAM
+      Xlarge (eXtra Large) -> 32 CPU Core & 128 GB RAM
+  type: enum
+  group: Resource Unit
+  options:
+    - Small
+    - Medium
+    - Large
+    - Xlarge
+  label: Select Resource Unit Size?
+  required: true
+- variable: imageCredentials.username
+  default: metricstream
+  description: |
+    User name for the docker private registry
+  type: string
+  group: Docker Login Credentials
+  label: Docker Username
+  required: true
+- variable: imageCredentials.password
+  description: |
+    Password for the docker private registry
+  type: password
+  group: Docker Login Credentials
+  label: Docker Password
+  required: true

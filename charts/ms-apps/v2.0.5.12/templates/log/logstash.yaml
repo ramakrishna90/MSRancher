@@ -1,0 +1,20 @@
+apiVersion: extensions/v1beta1
+kind: Deployment
+metadata:
+  name: logstash
+spec:
+  replicas: 1
+  template:
+    metadata:
+      name: logstash
+      labels:
+        app: logstash
+        tier: app
+        role: master
+    spec:
+      containers:
+      - name: logstash
+        image: {{required "Image Info is mandatory! Read the Project Documentation to understand what and where to configure." .Values.image.LOGSTASH }}
+        imagePullPolicy: IfNotPresent
+      imagePullSecrets:
+      - name: container-registry-key
