@@ -90,6 +90,9 @@ spec:
         - mountPath: /tmp
           name: data
           subPath: tmp
+        - mountPath: /var/tmp
+          name: data
+          subPath: var_tmp
         securityContext:
           readOnlyRootFilesystem: true
         ports:
