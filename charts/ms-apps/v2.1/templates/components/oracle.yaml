@@ -1,0 +1,113 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: oracle
+spec:
+  ports:
+    - name: oracle
+      protocol: TCP
+      port: 1521
+      targetPort: 1521
+  selector:
+    app: oracle
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: oracle
+spec:
+  replicas: 0
+  selector:
+    matchLabels:
+      app: oracle
+  template:
+    metadata:
+      name: oracle
+      labels:
+        app: oracle
+        tier: persistent-tier
+    spec:
+      serviceAccountName: common-service-account
+      volumes: 
+      - name: data
+        persistentVolumeClaim:
+          claimName: oracle-pvc
+      - name: dshm
+        emptyDir:
+          medium: Memory
+      containers:
+      - name: oracle
+        image: {{required "Image Info is mandatory! Read the Project Documentation to understand what and where to configure." .Values.image.ORACLE }}
+        imagePullPolicy: IfNotPresent
+        env:
+        - name: ORACLE_MAX_MEM
+          valueFrom:
+            configMapKeyRef:
+              name: resource-config
+              key: ORACLE_MAX_MEM
+        ports:
+        - name: oracle
+          containerPort: 1521
+        resources:
+          limits:
+            {{- if (eq "Small" .Values.resourceUnit.size) }}
+            memory: {{ .Values.resourceUnit.small.memory.max.ORACLE }}Mi
+            cpu: {{ .Values.resourceUnit.small.cpu.max.ORACLE }}m
+            {{- else if (eq "Medium" .Values.resourceUnit.size) }}
+            memory: {{ .Values.resourceUnit.medium.memory.max.ORACLE }}Mi
+            cpu: {{ .Values.resourceUnit.medium.cpu.max.ORACLE }}m
+            {{- else if (eq "Large" .Values.resourceUnit.size) }}
+            memory: {{ .Values.resourceUnit.large.memory.max.ORACLE }}Mi
+            cpu: {{ .Values.resourceUnit.large.cpu.max.ORACLE }}m
+            {{- else if (eq "Xlarge" .Values.resourceUnit.size) }}
+            memory: {{ .Values.resourceUnit.xlarge.memory.max.ORACLE }}Mi
+            cpu: {{ .Values.resourceUnit.xlarge.cpu.max.ORACLE }}m
+            {{- end }}
+          requests:
+            {{- if (eq "Small" .Values.resourceUnit.size) }}
+            memory: {{ .Values.resourceUnit.small.memory.max.ORACLE }}Mi
+            cpu: {{ .Values.resourceUnit.small.cpu.max.ORACLE }}m
+            {{- else if (eq "Medium" .Values.resourceUnit.size) }}
+            memory: {{ .Values.resourceUnit.medium.memory.max.ORACLE }}Mi
+            cpu: {{ .Values.resourceUnit.medium.cpu.max.ORACLE }}m
+            {{- else if (eq "Large" .Values.resourceUnit.size) }}
+            memory: {{ .Values.resourceUnit.large.memory.max.ORACLE }}Mi
+            cpu: {{ .Values.resourceUnit.large.cpu.max.ORACLE }}m
+            {{- else if (eq "Xlarge" .Values.resourceUnit.size) }}
+            memory: {{ .Values.resourceUnit.xlarge.memory.max.ORACLE }}Mi
+            cpu: {{ .Values.resourceUnit.xlarge.cpu.max.ORACLE }}m
+            {{- end }}
+        volumeMounts:
+        - mountPath: /data/oracle/oradata
+          name: data
+          subPath: oradata
+        - mountPath: /dev/shm
+          name: dshm
+        - mountPath: /opt/oracle/product/12.2.0.1/dbhome_1/network/admin
+          name: data
+          subPath: admin
+        - mountPath: /opt/oracle/admin/orcl/adump
+          name: data
+          subPath: adump
+        - mountPath: /opt/oracle/product/12.2.0.1/dbhome_1/dbs
+          name: data
+          subPath: dbs
+        - mountPath: /opt/oracle/diag/rdbms/orcl
+          name: data
+          subPath: orcl
+        - mountPath: /opt/oracle/product/12.2.0.1/dbhome_1/rdbms/log
+          name: data
+          subPath: log
+        - mountPath: /tmp
+          name: data
+          subPath: tmp
+        - mountPath: /var/tmp
+          name: data
+          subPath: var_tmp
+      imagePullSecrets:
+      - name: container-registry-key
+      securityContext:
+        runAsUser: 54321
+        runAsNonRoot: true
+        fsGroup: 54321
+      allowedCapabilities: null

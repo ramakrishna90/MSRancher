@@ -1,0 +1,20 @@
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+ name: tomcat-pvc
+ annotations:
+   volume.beta.kubernetes.io/storage-class: ms-storage-class
+spec:
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      {{- if (eq "Small" .Values.resourceUnit.size) }}
+      storage: {{ .Values.resourceUnit.small.storage.size.TOMCAT }}Gi
+      {{- else if (eq "Medium" .Values.resourceUnit.size) }}
+      storage: {{ .Values.resourceUnit.medium.storage.size.TOMCAT }}Gi
+      {{- else if (eq "Large" .Values.resourceUnit.size) }}
+      storage: {{ .Values.resourceUnit.large.storage.size.TOMCAT }}Gi
+      {{- else if (eq "Xlarge" .Values.resourceUnit.size) }}
+      storage: {{ .Values.resourceUnit.xlarge.storage.size.TOMCAT }}Gi
+      {{- end }}
