@@ -1,7 +1,7 @@
 apiVersion: v1
 kind: PersistentVolumeClaim
 metadata:
-  name: elasticsearch
+  name: elasticsearch-pvc
   annotations:
     volume.beta.kubernetes.io/storage-class: ms-storage-class
 spec:

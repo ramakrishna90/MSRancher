@@ -27,7 +27,7 @@ spec:
       containers:
       - name: datarouter
         image: {{required "Data Router Image Info is mandatory! Read the Project Documentation to understand what and where to configure." .Values.image.DATAROUTER }}
-        imagePullPolicy: IfNotPresent
+        imagePullPolicy: Always
         {{- with ( pluck .Values.resourceUnit.size .Values.resourceUnit | first ) }}
         resources:
           limits:
