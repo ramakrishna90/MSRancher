@@ -54,35 +54,15 @@ spec:
           {{- end }}
         - name: processors
           value: "1"
+        {{- with ( pluck .Values.resourceUnit.size .Values.resourceUnit | first ) }}
         resources:
           limits:
-            {{- if (eq "Small" .Values.resourceUnit.size) }}
-            memory: {{ .Values.resourceUnit.small.memory.max.ELASTICSEARCH }}Mi
-            cpu: {{ .Values.resourceUnit.small.cpu.max.ELASTICSEARCH }}m
-            {{- else if (eq "Medium" .Values.resourceUnit.size) }}
-            memory: {{ .Values.resourceUnit.medium.memory.max.ELASTICSEARCH }}Mi
-            cpu: {{ .Values.resourceUnit.medium.cpu.max.ELASTICSEARCH }}m
-            {{- else if (eq "Large" .Values.resourceUnit.size) }}
-            memory: {{ .Values.resourceUnit.large.memory.max.ELASTICSEARCH }}Mi
-            cpu: {{ .Values.resourceUnit.large.cpu.max.ELASTICSEARCH }}m
-            {{- else if (eq "Xlarge" .Values.resourceUnit.size) }}
-            memory: {{ .Values.resourceUnit.xlarge.memory.max.ELASTICSEARCH }}Mi
-            cpu: {{ .Values.resourceUnit.xlarge.cpu.max.ELASTICSEARCH }}m
-            {{- end }}
+            memory: {{ .memory.max.ELASTICSEARCH }}Mi
+            cpu: {{ .cpu.max.ELASTICSEARCH }}m
           requests:
-            {{- if (eq "Small" .Values.resourceUnit.size) }}
-            memory: {{ .Values.resourceUnit.small.memory.max.ELASTICSEARCH }}Mi
-            cpu: {{ .Values.resourceUnit.small.cpu.max.ELASTICSEARCH }}m
-            {{- else if (eq "Medium" .Values.resourceUnit.size) }}
-            memory: {{ .Values.resourceUnit.medium.memory.max.ELASTICSEARCH }}Mi
-            cpu: {{ .Values.resourceUnit.medium.cpu.max.ELASTICSEARCH }}m
-            {{- else if (eq "Large" .Values.resourceUnit.size) }}
-            memory: {{ .Values.resourceUnit.large.memory.max.ELASTICSEARCH }}Mi
-            cpu: {{ .Values.resourceUnit.large.cpu.max.ELASTICSEARCH }}m
-            {{- else if (eq "Xlarge" .Values.resourceUnit.size) }}
-            memory: {{ .Values.resourceUnit.xlarge.memory.max.ELASTICSEARCH }}Mi
-            cpu: {{ .Values.resourceUnit.xlarge.cpu.max.ELASTICSEARCH }}m
-            {{- end }}
+            memory: {{ .memory.max.ELASTICSEARCH }}Mi
+            cpu: {{ .cpu.max.ELASTICSEARCH }}m
+        {{- end }}
         volumeMounts:
         - mountPath: /data/elasticsearch
           name: data

@@ -110,35 +110,15 @@ spec:
           containerPort: 8080
         - name: jmx
           containerPort: 8888
+        {{- with ( pluck .Values.resourceUnit.size .Values.resourceUnit | first ) }}
         resources:
           limits:
-            {{- if (eq "Small" .Values.resourceUnit.size) }}
-            memory: {{ .Values.resourceUnit.small.memory.max.TOMCAT }}Mi
-            cpu: {{ .Values.resourceUnit.small.cpu.max.TOMCAT }}m
-            {{- else if (eq "Medium" .Values.resourceUnit.size) }}
-            memory: {{ .Values.resourceUnit.medium.memory.max.TOMCAT }}Mi
-            cpu: {{ .Values.resourceUnit.medium.cpu.max.TOMCAT }}m
-            {{- else if (eq "Large" .Values.resourceUnit.size) }}
-            memory: {{ .Values.resourceUnit.large.memory.max.TOMCAT }}Mi
-            cpu: {{ .Values.resourceUnit.large.cpu.max.TOMCAT }}m
-            {{- else if (eq "Xlarge" .Values.resourceUnit.size) }}
-            memory: {{ .Values.resourceUnit.xlarge.memory.max.TOMCAT }}Mi
-            cpu: {{ .Values.resourceUnit.xlarge.cpu.max.TOMCAT }}m
-            {{- end }}
+            memory: {{ .memory.max.TOMCAT }}Mi
+            cpu: {{ .cpu.max.TOMCAT }}m
           requests:
-            {{- if (eq "Small" .Values.resourceUnit.size) }}
-            memory: {{ .Values.resourceUnit.small.memory.max.TOMCAT }}Mi
-            cpu: {{ .Values.resourceUnit.small.cpu.max.TOMCAT }}m
-            {{- else if (eq "Medium" .Values.resourceUnit.size) }}
-            memory: {{ .Values.resourceUnit.medium.memory.max.TOMCAT }}Mi
-            cpu: {{ .Values.resourceUnit.medium.cpu.max.TOMCAT }}m
-            {{- else if (eq "Large" .Values.resourceUnit.size) }}
-            memory: {{ .Values.resourceUnit.large.memory.max.TOMCAT }}Mi
-            cpu: {{ .Values.resourceUnit.large.cpu.max.TOMCAT }}m
-            {{- else if (eq "Xlarge" .Values.resourceUnit.size) }}
-            memory: {{ .Values.resourceUnit.xlarge.memory.max.TOMCAT }}Mi
-            cpu: {{ .Values.resourceUnit.xlarge.cpu.max.TOMCAT }}m
-            {{- end }}
+            memory: {{ .memory.max.TOMCAT }}Mi
+            cpu: {{ .cpu.max.TOMCAT }}m
+        {{- end }}
         volumeMounts:
         - mountPath: /opt/MetricStream/SYSTEMi
           subPath: SYSTEMi
@@ -165,6 +145,15 @@ spec:
       - name: libreoffice
         image: {{required "Image Info is mandatory! Read the Project Documentation to understand what and where to configure." .Values.image.LIBREOFFICE }}
         imagePullPolicy: IfNotPresent
+        {{- with ( pluck .Values.resourceUnit.size .Values.resourceUnit | first ) }}
+        resources:
+          limits:
+            memory: {{ .memory.max.LIBREOFFICE }}Mi
+            cpu: {{ .cpu.max.LIBREOFFICE }}m
+          requests:
+            memory: {{ .memory.max.LIBREOFFICE }}Mi
+            cpu: {{ .cpu.max.LIBREOFFICE }}m
+        {{- end }}
         resources:
           limits:
             {{- if (eq "Small" .Values.resourceUnit.size) }}

@@ -31,10 +31,10 @@ questions:
   type: enum
   group: Resource Unit
   options:
-    - Small
-    - Medium
-    - Large
-    - Xlarge
+    - small
+    - medium
+    - large
+    - xlarge
   label: Select Resource Unit Size?
   required: true
 - variable: imageCredentials.registry

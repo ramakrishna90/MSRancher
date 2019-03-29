@@ -8,13 +8,7 @@ spec:
   accessModes:
     - ReadWriteOnce
   resources:
+    {{- with ( pluck .Values.resourceUnit.size .Values.resourceUnit | first ) }}
     requests:
-      {{- if (eq "Small" .Values.resourceUnit.size) }}
-      storage: {{ .Values.resourceUnit.small.storage.size.ACTIVEMQ }}Gi
-      {{- else if (eq "Medium" .Values.resourceUnit.size) }}
-      storage: {{ .Values.resourceUnit.medium.storage.size.ACTIVEMQ }}Gi
-      {{- else if (eq "Large" .Values.resourceUnit.size) }}
-      storage: {{ .Values.resourceUnit.large.storage.size.ACTIVEMQ }}Gi
-      {{- else if (eq "Xlarge" .Values.resourceUnit.size) }}
-      storage: {{ .Values.resourceUnit.xlarge.storage.size.ACTIVEMQ }}Gi
-      {{- end }}
+      storage: {{ .storage.size.ACTIVEMQ }}Gi
+    {{- end }}

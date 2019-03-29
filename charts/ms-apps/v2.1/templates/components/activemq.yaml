@@ -50,35 +50,15 @@ spec:
             configMapKeyRef:
               name: resource-config
               key: ACTIVEMQ_MAX_MEM
+        {{- with ( pluck .Values.resourceUnit.size .Values.resourceUnit | first ) }}
         resources:
           limits:
-            {{- if (eq "Small" .Values.resourceUnit.size) }}
-            memory: {{ .Values.resourceUnit.small.memory.max.ACTIVEMQ }}Mi
-            cpu: {{ .Values.resourceUnit.small.cpu.max.ACTIVEMQ }}m
-            {{- else if (eq "Medium" .Values.resourceUnit.size) }}
-            memory: {{ .Values.resourceUnit.medium.memory.max.ACTIVEMQ }}Mi
-            cpu: {{ .Values.resourceUnit.medium.cpu.max.ACTIVEMQ }}m
-            {{- else if (eq "Large" .Values.resourceUnit.size) }}
-            memory: {{ .Values.resourceUnit.large.memory.max.ACTIVEMQ }}Mi
-            cpu: {{ .Values.resourceUnit.large.cpu.max.ACTIVEMQ }}m
-            {{- else if (eq "Xlarge" .Values.resourceUnit.size) }}
-            memory: {{ .Values.resourceUnit.xlarge.memory.max.ACTIVEMQ }}Mi
-            cpu: {{ .Values.resourceUnit.xlarge.cpu.max.ACTIVEMQ }}m
-            {{- end }}
+            memory: {{ .memory.max.ACTIVEMQ }}Mi
+            cpu: {{ .cpu.max.ACTIVEMQ }}m
           requests:
-            {{- if (eq "Small" .Values.resourceUnit.size) }}
-            memory: {{ .Values.resourceUnit.small.memory.max.ACTIVEMQ }}Mi
-            cpu: {{ .Values.resourceUnit.small.cpu.max.ACTIVEMQ }}m
-            {{- else if (eq "Medium" .Values.resourceUnit.size) }}
-            memory: {{ .Values.resourceUnit.medium.memory.max.ACTIVEMQ }}Mi
-            cpu: {{ .Values.resourceUnit.medium.cpu.max.ACTIVEMQ }}m
-            {{- else if (eq "Large" .Values.resourceUnit.size) }}
-            memory: {{ .Values.resourceUnit.large.memory.max.ACTIVEMQ }}Mi
-            cpu: {{ .Values.resourceUnit.large.cpu.max.ACTIVEMQ }}m
-            {{- else if (eq "Xlarge" .Values.resourceUnit.size) }}
-            memory: {{ .Values.resourceUnit.xlarge.memory.max.ACTIVEMQ }}Mi
-            cpu: {{ .Values.resourceUnit.xlarge.cpu.max.ACTIVEMQ }}m
-            {{- end }}
+            memory: {{ .memory.max.ACTIVEMQ }}Mi
+            cpu: {{ .cpu.max.ACTIVEMQ }}m
+        {{- end }}
         volumeMounts:
         - mountPath: /apache-activemq/data
           name: data

@@ -48,35 +48,15 @@ spec:
         ports:
         - name: oracle
           containerPort: 1521
+        {{- with ( pluck .Values.resourceUnit.size .Values.resourceUnit | first ) }}
         resources:
           limits:
-            {{- if (eq "Small" .Values.resourceUnit.size) }}
-            memory: {{ .Values.resourceUnit.small.memory.max.ORACLE }}Mi
-            cpu: {{ .Values.resourceUnit.small.cpu.max.ORACLE }}m
-            {{- else if (eq "Medium" .Values.resourceUnit.size) }}
-            memory: {{ .Values.resourceUnit.medium.memory.max.ORACLE }}Mi
-            cpu: {{ .Values.resourceUnit.medium.cpu.max.ORACLE }}m
-            {{- else if (eq "Large" .Values.resourceUnit.size) }}
-            memory: {{ .Values.resourceUnit.large.memory.max.ORACLE }}Mi
-            cpu: {{ .Values.resourceUnit.large.cpu.max.ORACLE }}m
-            {{- else if (eq "Xlarge" .Values.resourceUnit.size) }}
-            memory: {{ .Values.resourceUnit.xlarge.memory.max.ORACLE }}Mi
-            cpu: {{ .Values.resourceUnit.xlarge.cpu.max.ORACLE }}m
-            {{- end }}
+            memory: {{ .memory.max.ORACLE }}Mi
+            cpu: {{ .cpu.max.ORACLE }}m
           requests:
-            {{- if (eq "Small" .Values.resourceUnit.size) }}
-            memory: {{ .Values.resourceUnit.small.memory.max.ORACLE }}Mi
-            cpu: {{ .Values.resourceUnit.small.cpu.max.ORACLE }}m
-            {{- else if (eq "Medium" .Values.resourceUnit.size) }}
-            memory: {{ .Values.resourceUnit.medium.memory.max.ORACLE }}Mi
-            cpu: {{ .Values.resourceUnit.medium.cpu.max.ORACLE }}m
-            {{- else if (eq "Large" .Values.resourceUnit.size) }}
-            memory: {{ .Values.resourceUnit.large.memory.max.ORACLE }}Mi
-            cpu: {{ .Values.resourceUnit.large.cpu.max.ORACLE }}m
-            {{- else if (eq "Xlarge" .Values.resourceUnit.size) }}
-            memory: {{ .Values.resourceUnit.xlarge.memory.max.ORACLE }}Mi
-            cpu: {{ .Values.resourceUnit.xlarge.cpu.max.ORACLE }}m
-            {{- end }}
+            memory: {{ .memory.max.ORACLE }}Mi
+            cpu: {{ .cpu.max.ORACLE }}m
+        {{- end }}
         volumeMounts:
         - mountPath: /data/oracle/oradata
           name: data
