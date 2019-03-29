@@ -1,9 +1,9 @@
 apiVersion: v1
 kind: PersistentVolumeClaim
 metadata:
- name: oracle-pvc
- annotations:
-   volume.beta.kubernetes.io/storage-class: ms-storage-class
+  name: oracle
+  annotations:
+    volume.beta.kubernetes.io/storage-class: ms-storage-class
 spec:
   accessModes:
     - ReadWriteOnce

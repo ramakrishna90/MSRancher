@@ -1,9 +1,9 @@
 apiVersion: v1
 kind: PersistentVolumeClaim
 metadata:
- name: mongo-pvc
- annotations:
-   volume.beta.kubernetes.io/storage-class: ms-storage-class
+  name: mongo
+  annotations:
+    volume.beta.kubernetes.io/storage-class: ms-storage-class
 spec:
   accessModes:
     - ReadWriteOnce
