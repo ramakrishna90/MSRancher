@@ -1,0 +1,168 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: activemq
+spec:
+  ports:
+    - name: activemq
+      protocol: TCP
+      port: 61616
+      targetPort: 61616
+  selector:
+    app: activemq
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: activemq
+spec:
+  replicas: 0
+  selector:
+    matchLabels:
+      app: activemq
+  template:
+    metadata:
+      name: activemq
+      labels:
+        app: activemq
+        tier: message-queue
+        container_name: activemq
+        environment: {{ .Values.label.ENVIRONMENT }}
+    spec:
+      serviceAccountName: common-service-account
+      volumes:
+      - name: data
+        persistentVolumeClaim:
+          claimName: activemq-pvc
+      - name: fluentd-config
+        configMap:
+          name: activemq-fluentd-config
+      containers:
+      - name: activemq
+        image: {{required "Image Info is mandatory! Read the Project Documentation to understand what and where to configure." .Values.image.ACTIVEMQ }}
+        imagePullPolicy: IfNotPresent
+        ports:
+        - name: activemq
+          containerPort: 61616
+        env:
+        - name: ACTIVEMQ_MAX_MEM
+          valueFrom:
+            configMapKeyRef:
+              name: resource-config
+              key: ACTIVEMQ_MAX_MEM
+        {{- with ( pluck .Values.resourceUnit.size .Values.resourceUnit | first ) }}
+        resources:
+          limits:
+            memory: {{ .memory.max.ACTIVEMQ }}Mi
+            cpu: {{ .cpu.max.ACTIVEMQ }}m
+          requests:
+            memory: {{ .memory.max.ACTIVEMQ }}Mi
+            cpu: {{ .cpu.max.ACTIVEMQ }}m
+        {{- end }}
+        volumeMounts:
+        - mountPath: /apache-activemq/data
+          name: data
+          subPath: activemq
+        - mountPath: /apache-activemq/conf/log4j.properties
+          name: data
+          subPath: conf/log4j.properties
+        - mountPath: /apache-activemq/conf/jetty.xml
+          name: data
+          subPath: conf/jetty.xml
+        - mountPath: /apache-activemq/conf/activemq.xml
+          name: data
+          subPath: conf/activemq.xml
+        - mountPath: /apache-activemq/tmp
+          name: data
+          subPath: activemq_tmp
+        - mountPath: /tmp
+          name: data
+          subPath: tmp
+        securityContext:
+          readOnlyRootFilesystem: true
+      - name: fluentd
+        image: {{ .Values.image.LOGZIO }}
+        env:
+        - name:  LOGZIO_TOKEN
+          valueFrom:
+            secretKeyRef:
+              name: logzio-token-secret
+              key: logzio-url
+        - name:  LOGZIO_URL
+          valueFrom:
+            secretKeyRef:
+              name: logzio-token-secret
+              key: logzio-token
+        - name: NODE_NAME
+          valueFrom:
+            fieldRef:
+              fieldPath: spec.nodeName
+        - name: HOST_IP
+          valueFrom:
+            fieldRef:
+              fieldPath: status.hostIP
+        - name: NAMESPACE
+          valueFrom:
+            fieldRef:
+              fieldPath: metadata.namespace
+        - name: POD_NAME
+          valueFrom:
+            fieldRef:
+              fieldPath: metadata.name
+        - name: POD_IP
+          valueFrom:
+            fieldRef:
+              fieldPath: status.podIP
+        - name: POD_SERVICE_ACCOUNT_NAME
+          valueFrom:
+            fieldRef:
+              fieldPath: spec.serviceAccountName
+        - name: POD_UNIQUE_ID
+          valueFrom:
+            fieldRef:
+              fieldPath: metadata.uid
+        - name: CONTAINER_NAME
+          valueFrom:
+            fieldRef:
+              fieldPath: metadata.labels['container_name']
+        - name: ENVIRONMENT
+          valueFrom:
+            fieldRef:
+              fieldPath: metadata.labels['environment']
+        - name: APP_TIER
+          valueFrom:
+            fieldRef:
+              fieldPath: metadata.labels['tier']
+        - name: CONTAINER_NAME
+          value: activemq
+        - name: NODE_NAME
+          valueFrom:
+            fieldRef:
+              fieldPath: spec.nodeName
+        - name: POD_NAME
+          value: activemq
+        - name: NAMESPACE
+          valueFrom:
+            fieldRef:
+              fieldPath: metadata.namespace
+        resources:
+          limits:
+            cpu: {{ .Values.logzio.cpu }}m
+            memory: {{ .Values.logzio.memory }}Mi
+          requests:
+            cpu: {{ .Values.logzio.cpu }}m
+            memory: {{ .Values.logzio.memory }}Mi
+        volumeMounts:
+        - name: fluentd-config
+          mountPath: /fluentd/etc/fluent.conf
+          subPath: fluent.conf
+        - name: data
+          mountPath: /apache-activemq/data
+          subPath: activemq
+      imagePullSecrets:
+        - name: container-registry-key
+      securityContext:
+        runAsUser: 1000
+        runAsNonRoot: true
+        fsGroup: 1000
+      allowedCapabilities: null
