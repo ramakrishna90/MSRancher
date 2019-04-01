@@ -5,7 +5,10 @@ metadata:
   labels:
     addonmanager.kubernetes.io/mode: Reconcile
 data:
-  ACTIVEMQ_MAX_MEM: {{ with ( pluck .Values.resourceUnit.size .Values.resourceUnit | first ) }} {{ .memory.max.ACTIVEMQ | quote }} {{ end }}
-  DATAROUTER_JAVA_XMX: {{ with ( pluck .Values.resourceUnit.size .Values.resourceUnit | first ) }} {{ .memory.max.DATAROUTER | quote }} {{ end }}
-  ELASTICSEARCH_JAVA_XMX: {{ with ( pluck .Values.resourceUnit.size .Values.resourceUnit | first ) }} {{ .memory.max.ELASTICSEARCH | quote }} {{ end }}
-  ORACLE_MAX_MEM: {{ with ( pluck .Values.resourceUnit.size .Values.resourceUnit | first ) }} {{ .memory.max.ORACLE | quote }} {{ end }}
+  {{- with ( pluck .Values.resourceUnit.size .Values.resourceUnit | first ) }}
+  ACTIVEMQ_MAX_MEM: {{ .memory.max.ACTIVEMQ | quote }}
+  DATAROUTER_JAVA_XMX: {{ .memory.max.DATAROUTER | quote }}
+  ELASTICSEARCH_JAVA_XMX: {{ .memory.max.ELASTICSEARCH | quote }}
+  ORACLE_MAX_MEM: {{ .memory.max.ORACLE | quote }}
+  TOMCAT_JAVA_XMX: {{ .memory.max.TOMCAT | quote }}
+  {{- end }}
