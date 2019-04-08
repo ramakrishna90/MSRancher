@@ -92,9 +92,6 @@ spec:
         - mountPath: /opt/MetricStream/SYSTEMi
           subPath: SYSTEMi
           name: data
-        - mountPath: /opt/MetricStream/SYSTEMi/Systemi/log
-          subPath: client_log
-          name: data
         - mountPath: /opt/MetricStream/SYSTEMi/Systemi/keys
           name: keys
         - mountPath: /tomcat/conf
@@ -210,7 +207,7 @@ spec:
           subPath: logs
         - name: data
           mountPath: /opt/MetricStream/SYSTEMi/Systemi/log
-          subPath: client_log
+          subPath: SYSTEMi/Systemi/log
       imagePullSecrets:
       - name: container-registry-key
       securityContext:

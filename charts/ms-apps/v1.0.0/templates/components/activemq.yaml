@@ -60,24 +60,21 @@ spec:
             cpu: {{ .cpu.max.ACTIVEMQ }}m
         {{- end }}
         volumeMounts:
-        - mountPath: /apache-activemq/data
+        - mountPath: /opt/activemq/data
           name: data
           subPath: activemq
-        - mountPath: /apache-activemq/conf/log4j.properties
+        - mountPath: /opt/activemq/conf/log4j.properties
           name: data
           subPath: conf/log4j.properties
-        - mountPath: /apache-activemq/conf/jetty.xml
+        - mountPath: /opt/activemq/conf/jetty.xml
           name: data
           subPath: conf/jetty.xml
-        - mountPath: /apache-activemq/conf/activemq.xml
+        - mountPath: /opt/activemq/conf/activemq.xml
           name: data
           subPath: conf/activemq.xml
-        - mountPath: /apache-activemq/tmp
+        - mountPath: /opt/activemq/tmp
           name: data
           subPath: activemq_tmp
-        - mountPath: /tmp
-          name: data
-          subPath: tmp
         securityContext:
           readOnlyRootFilesystem: true
       - name: fluentd
@@ -157,7 +154,7 @@ spec:
           mountPath: /fluentd/etc/fluent.conf
           subPath: fluent.conf
         - name: data
-          mountPath: /apache-activemq/data
+          mountPath: /opt/activemq/data
           subPath: activemq
       imagePullSecrets:
         - name: container-registry-key

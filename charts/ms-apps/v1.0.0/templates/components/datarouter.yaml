@@ -44,16 +44,16 @@ spec:
             cpu: {{ .cpu.max.DATAROUTER }}m
         {{- end }}
         volumeMounts:
-        - mountPath: /metricstream/SYSTEMi/datarouter/datarouter.properties
+        - mountPath: /opt/datarouter/datarouter.properties
           name: datarouter
           subPath: datarouter.properties
-        - mountPath: /metricstream/SYSTEMi/datarouter/log4j.properties
+        - mountPath: /opt/datarouter/log4j.properties
           name: datarouter
           subPath: log4j.properties
-        - mountPath: /metricstream/SYSTEMi/datarouter/smc_instrumentation.json
+        - mountPath: /opt/datarouter/smc_instrumentation.json
           name: datarouter
           subPath: smc_instrumentation.json
-        - mountPath: /metricstream/SYSTEMi/datarouter/logs
+        - mountPath: /opt/datarouter/logs
           name: datarouter
           subPath: logs
         securityContext:
@@ -123,7 +123,7 @@ spec:
           mountPath: /fluentd/etc/fluent.conf
           subPath: fluent.conf
         - name: datarouter
-          mountPath: /metricstream/SYSTEMi/datarouter/logs
+          mountPath: /opt/datarouter/logs
           subPath: logs
       imagePullSecrets:
       - name: container-registry-key

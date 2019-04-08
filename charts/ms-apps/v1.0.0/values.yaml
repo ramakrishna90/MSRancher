@@ -5,10 +5,10 @@ application:
     location: {INSTANCE_DOWNLOAD_URL}
 image:
   TOMCAT: metricstream/images:e13s-tomcat-9.0.10
-  DATAROUTER: metricstream/images:e13s-datarouter-2.17.7
-  ACTIVEMQ: metricstream/images:e13s-activemq-5.14.5
+  DATAROUTER: metricstream/images:e13s-datarouter-2.17.7-alpine-jre8
+  ACTIVEMQ: metricstream/images:e13s-activemq-5.14.5-alpine-jre8
   ELASTICSEARCH: metricstream/images:e13s-elasticsearch-2.4.1
-  LIBREOFFICE: metricstream/images:e13s-libreoffice-5.2.3.3
+  LIBREOFFICE: metricstream/images:e13s-libreoffice-headless-alpine-latest
   MONGO: metricstream/images:e13s-mongodb-2.6.12
   ORACLE: metricstream/images:e13s-oracle-12.2.0.1
   MAINTENANCE: metricstream/images:e13s-maintenance-1.0.0
