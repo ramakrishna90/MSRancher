@@ -127,8 +127,8 @@ spec:
         - mountPath: /opt/MetricStream/SYSTEMi
           subPath: SYSTEMi
           name: data
-        - mountPath: /home/kairos
-          subPath: libre_kairos
+        - mountPath: /opt/libreoffice
+          subPath: libre_home
           name: data
         - mountPath: /tmp
           subPath: libre_tmp
