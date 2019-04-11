@@ -7,7 +7,7 @@ image:
   TOMCAT: metricstream/images:e13s-tomcat-9.0.10
   DATAROUTER: metricstream/images:e13s-datarouter-2.17.7-alpine-jre8
   ACTIVEMQ: metricstream/images:e13s-activemq-5.14.5-alpine-jre8
-  ELASTICSEARCH: metricstream/images:e13s-elasticsearch-2.4.1
+  ELASTICSEARCH: metricstream/images:e13s-elasticsearch-2.4.1-alpine-jre8
   LIBREOFFICE: metricstream/images:e13s-libreoffice-headless-latest-alpine-jre8
   MONGO: metricstream/images:e13s-mongodb-2.6.12
   ORACLE: metricstream/images:e13s-oracle-12.2.0.1
