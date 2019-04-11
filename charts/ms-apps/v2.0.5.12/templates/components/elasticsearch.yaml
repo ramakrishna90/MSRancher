@@ -2,10 +2,6 @@ apiVersion: v1
 kind: Service
 metadata:
   name: elasticsearch
-  labels:
-    app: elasticsearch
-    tier: app
-    role: master
 spec:
   ports:
     - name: elasticsearch
@@ -24,21 +20,23 @@ spec:
   selector:
     matchLabels:
       app: elasticsearch
-      tier: app
-      role: master
   template:
     metadata:
       name: elasticsearch
       labels:
         app: elasticsearch
-        tier: app
-        role: master
+        tier: persitent-tier
+        container_name: elasticsearch
+        environment: {{ .Values.label.ENVIRONMENT }}        
     spec:
-      serviceAccountName: {{.Release.Namespace}}-sa
+      serviceAccountName: common-service-account
       volumes:
       - name: data
         persistentVolumeClaim:
-          claimName: elasticsearch
+          claimName: elasticsearch-pvc
+      - name: fluentd-config
+        configMap:
+          name: elasticsearch-fluentd-config
       containers:
       - name: elasticsearch
         image: {{required "Image Info is mandatory! Read the Project Documentation to understand what and where to configure." .Values.image.ELASTICSEARCH }}
@@ -56,48 +54,106 @@ spec:
           {{- end }}
         - name: processors
           value: "1"
+        {{- with ( pluck .Values.resourceUnit.size .Values.resourceUnit | first ) }}
         resources:
           limits:
-            {{- if (eq "Small" .Values.resourceUnit.size) }}
-            memory: {{ .Values.resourceUnit.small.memory.max.ELASTICSEARCH }}Mi
-            cpu: {{ .Values.resourceUnit.small.cpu.max.ELASTICSEARCH }}m
-            {{- else if (eq "Medium" .Values.resourceUnit.size) }}
-            memory: {{ .Values.resourceUnit.medium.memory.max.ELASTICSEARCH }}Mi
-            cpu: {{ .Values.resourceUnit.medium.cpu.max.ELASTICSEARCH }}m
-            {{- else if (eq "Large" .Values.resourceUnit.size) }}
-            memory: {{ .Values.resourceUnit.large.memory.max.ELASTICSEARCH }}Mi
-            cpu: {{ .Values.resourceUnit.large.cpu.max.ELASTICSEARCH }}m
-            {{- else if (eq "Xlarge" .Values.resourceUnit.size) }}
-            memory: {{ .Values.resourceUnit.xlarge.memory.max.ELASTICSEARCH }}Mi
-            cpu: {{ .Values.resourceUnit.xlarge.cpu.max.ELASTICSEARCH }}m
-            {{- end }}
+            memory: {{ .memory.max.ELASTICSEARCH }}Mi
+            cpu: {{ .cpu.max.ELASTICSEARCH }}m
+          requests:
+            memory: {{ .memory.max.ELASTICSEARCH }}Mi
+            cpu: {{ .cpu.max.ELASTICSEARCH }}m
+        {{- end }}
         volumeMounts:
         - mountPath: /data/elasticsearch
-          subPath: elasticsearch
           name: data
+          subPath: elasticsearch
         - mountPath: /usr/share/elasticsearch/data
           name: data
           subPath: data
         - mountPath: /usr/share/elasticsearch/config/logging.yml
+          name: data
           subPath: conf/logging.yml
-          name: data
         - mountPath: /usr/share/elasticsearch/config/elasticsearch.yml
-          subPath: conf/elasticsearch.yml
           name: data
+          subPath: conf/elasticsearch.yml
         - mountPath: /usr/share/elasticsearch/logs
           name: data
           subPath: logs
         - mountPath: /tmp
           name: data
           subPath: tmp
-        - mountPath: /var/tmp
-          name: data
-          subPath: var_tmp
         securityContext:
           readOnlyRootFilesystem: true
         ports:
         - name: elasticsearch
           containerPort: 9300
+      - name: fluentd
+        image: {{ .Values.image.LOGZIO }}
+        env:
+        - name:  LOGZIO_TOKEN
+          valueFrom:
+            secretKeyRef:
+              name: logzio-token-secret
+              key: logzio-url
+        - name:  LOGZIO_URL
+          valueFrom:
+            secretKeyRef:
+              name: logzio-token-secret
+              key: logzio-token
+        - name: NODE_NAME
+          valueFrom:
+            fieldRef:
+              fieldPath: spec.nodeName
+        - name: HOST_IP
+          valueFrom:
+            fieldRef:
+              fieldPath: status.hostIP
+        - name: NAMESPACE
+          valueFrom:
+            fieldRef:
+              fieldPath: metadata.namespace
+        - name: POD_NAME
+          valueFrom:
+            fieldRef:
+              fieldPath: metadata.name
+        - name: POD_IP
+          valueFrom:
+            fieldRef:
+              fieldPath: status.podIP
+        - name: POD_SERVICE_ACCOUNT_NAME
+          valueFrom:
+            fieldRef:
+              fieldPath: spec.serviceAccountName
+        - name: POD_UNIQUE_ID
+          valueFrom:
+            fieldRef:
+              fieldPath: metadata.uid
+        - name: CONTAINER_NAME
+          valueFrom:
+            fieldRef:
+              fieldPath: metadata.labels['container_name']
+        - name: ENVIRONMENT
+          valueFrom:
+            fieldRef:
+              fieldPath: metadata.labels['environment']
+        - name: APP_TIER
+          valueFrom:
+            fieldRef:
+              fieldPath: metadata.labels['tier']
+        resources:
+          limits:
+            cpu: {{ .Values.logzio.cpu }}m
+            memory: {{ .Values.logzio.memory }}Mi
+          requests:
+            cpu: {{ .Values.logzio.cpu }}m
+            memory: {{ .Values.logzio.memory }}Mi
+        volumeMounts:
+        - name: fluentd-config
+          mountPath: /fluentd/etc/fluent.conf
+          subPath: fluent.conf
+        - name: data
+          mountPath: /usr/share/elasticsearch/logs
+          subPath: logs
       imagePullSecrets:
       - name: container-registry-key
       securityContext:
@@ -106,4 +162,3 @@ spec:
         fsGroup: 1000
       allowedCapabilities: null
 
-      

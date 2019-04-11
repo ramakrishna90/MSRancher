@@ -1,20 +1,14 @@
 apiVersion: v1
 kind: PersistentVolumeClaim
 metadata:
- name: mongo
- annotations:
-   volume.beta.kubernetes.io/storage-class: ms-storage-class
+  name: mongo-pvc
+  annotations:
+    volume.beta.kubernetes.io/storage-class: ms-storage-class
 spec:
   accessModes:
     - ReadWriteOnce
   resources:
+    {{- with ( pluck .Values.resourceUnit.size .Values.resourceUnit | first ) }}
     requests:
-      {{- if (eq "Small" .Values.resourceUnit.size) }}
-      storage: {{ .Values.resourceUnit.small.storage.size.MONGO }}Gi
-      {{- else if (eq "Medium" .Values.resourceUnit.size) }}
-      storage: {{ .Values.resourceUnit.medium.storage.size.MONGO }}Gi
-      {{- else if (eq "Large" .Values.resourceUnit.size) }}
-      storage: {{ .Values.resourceUnit.large.storage.size.MONGO }}Gi
-      {{- else if (eq "Xlarge" .Values.resourceUnit.size) }}
-      storage: {{ .Values.resourceUnit.xlarge.storage.size.MONGO }}Gi
-      {{- end }}
+      storage: {{ .storage.size.MONGO }}Gi
+    {{- end }}

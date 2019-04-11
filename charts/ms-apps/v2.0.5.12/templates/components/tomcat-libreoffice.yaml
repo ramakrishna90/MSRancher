@@ -2,10 +2,6 @@ apiVersion: v1
 kind: Service
 metadata:
   name: tomcat
-  labels:
-    app: tomcat
-    tier: app
-    role: master
 spec:
   ports:
     - name: tomcat
@@ -22,10 +18,6 @@ apiVersion: v1
 kind: Service
 metadata:
   name: tomcat-jmx
-  labels:
-    app: tomcat
-    tier: app
-    role: master
 spec:
   ports:
     - name: jmx
@@ -44,27 +36,26 @@ spec:
   selector:
     matchLabels:
       app: tomcat
-      tier: app
-      role: master
   template:
     metadata:
       name: tomcat
       labels:
         app: tomcat
-        tier: app
-        role: master
+        tier: frontend
+        container_name: tomcat
+        environment: {{ .Values.label.ENVIRONMENT }}
     spec:
-      serviceAccountName: {{.Release.Namespace}}-sa
+      serviceAccountName: common-service-account
       volumes:
       - name: data
         persistentVolumeClaim:
-          claimName: tomcat
+          claimName: tomcat-pvc
       - name: keys
         secret:
           secretName: ms-license-key
       - name: fluentd-config
         configMap:
-          name: fluentd-config
+          name: tomcat-fluentd-config
       containers:
       - name: tomcat
         image: {{required "Image Info is mandatory! Read the Project Documentation to understand what and where to configure." .Values.image.TOMCAT }}
@@ -76,70 +67,36 @@ spec:
           valueFrom:
             fieldRef:
               fieldPath: metadata.namespace
+        - name: TOMCAT_JAVA_XMX
+          valueFrom:
+            configMapKeyRef:
+              name: resource-config
+              key: TOMCAT_JAVA_XMX
         - name: CLASSPATH
           value: "/tomcat/bin/bootstrap.jar:/tomcat/bin/tomcat-juli.jar:/tomcat/extralib/*"
-        args:
-        - java
-        - -server
-        - -Xms1024m
-        {{- if (eq "Small" .Values.resourceUnit.size) }}
-        - -Xmx{{.Values.resourceUnit.small.memory.max.TOMCAT}}m
-        {{- else if (eq "Medium" .Values.resourceUnit.size)}}
-        - -Xmx{{.Values.resourceUnit.medium.memory.max.TOMCAT}}m
-        {{- else if (eq "Large" .Values.resourceUnit.size) }}
-        - -Xmx{{.Values.resourceUnit.large.memory.max.TOMCAT}}m
-        {{- else if (eq "Xlarge" .Values.resourceUnit.size) }}
-        - -Xmx{{.Values.resourceUnit.xlarge.memory.max.TOMCAT}}m
-        {{- end }}
-        - -Dcatalina.home=/tomcat
-        - -Dcatalina.base=/tomcat
-        - -Djava.util.logging.manager=org.apache.juli.ClassLoaderLogManager
-        - -Djava.util.logging.config.file=/tomcat/conf/logging.properties
-        - -Djava.protocol.handler.pkgs=org.apache.catalina.webresources
-        - -Djava.io.tmpdir=/tmp
-        - -Djava.awt.headless=true
-        - -Dlogback.configurationFile=/opt/MetricStream/SYSTEMi/Systemi/Config/logback.xml
-        - -Djava.awt.fonts=/opt/java/jre/lib/fonts
-        - -Djava.security.policy=/opt/MetricStream/SYSTEMi/Systemi/Config/ecp-app.policy
-        - -Djava.library.path=/opt/MetricStream/SYSTEMi/Systemi/webapp/WEB-INF/lib
-        - -DMETRICSTREAM.CONFIG=/opt/MetricStream/SYSTEMi/Systemi/Config/config.client.xml
-        - -DMETRICSTREAM.HOME=/opt/MetricStream/SYSTEMi/Systemi
-        - -DMETRICSTREAM.PROPERTY.NODE_ID=1
-        - -Duser.country=US
-        - -Duser.language=en
-        - -Dcom.sun.management.jmxremote
-        - -Dcom.sun.management.jmxremote.authenticate=false
-        - -Dcom.sun.management.jmxremote.ssl=false
-        - -Dcom.sun.management.jmxremote.port=8888
-        - -Dfile.encoding=UTF-8
-        - org.apache.catalina.startup.Bootstrap
-        - start
         ports:
         - name: tomcat
           containerPort: 8080
         - name: jmx
           containerPort: 8888
+        {{- with ( pluck .Values.resourceUnit.size .Values.resourceUnit | first ) }}
         resources:
           limits:
-            {{- if (eq "Small" .Values.resourceUnit.size) }}
-            memory: {{ .Values.resourceUnit.small.memory.max.TOMCAT }}Mi
-            cpu: {{ .Values.resourceUnit.small.cpu.max.TOMCAT }}m
-            {{- else if (eq "Medium" .Values.resourceUnit.size) }}
-            memory: {{ .Values.resourceUnit.medium.memory.max.TOMCAT }}Mi
-            cpu: {{ .Values.resourceUnit.medium.cpu.max.TOMCAT }}m
-            {{- else if (eq "Large" .Values.resourceUnit.size) }}
-            memory: {{ .Values.resourceUnit.large.memory.max.TOMCAT }}Mi
-            cpu: {{ .Values.resourceUnit.large.cpu.max.TOMCAT }}m
-            {{- else if (eq "Xlarge" .Values.resourceUnit.size) }}
-            memory: {{ .Values.resourceUnit.xlarge.memory.max.TOMCAT }}Mi
-            cpu: {{ .Values.resourceUnit.xlarge.cpu.max.TOMCAT }}m
-            {{- end }}
+            memory: {{ .memory.max.TOMCAT }}Mi
+            cpu: {{ .cpu.max.TOMCAT }}m
+          requests:
+            memory: {{ .memory.max.TOMCAT }}Mi
+            cpu: {{ .cpu.max.TOMCAT }}m
+        {{- end }}
         volumeMounts:
         - mountPath: /opt/MetricStream/SYSTEMi
           subPath: SYSTEMi
           name: data
         - mountPath: /opt/MetricStream/SYSTEMi/Systemi/keys
           name: keys
+        - mountPath: /data/metricstream
+          name: data
+          subPath: ms_data
         - mountPath: /tomcat/conf
           name: data
           subPath: conf
@@ -157,21 +114,15 @@ spec:
       - name: libreoffice
         image: {{required "Image Info is mandatory! Read the Project Documentation to understand what and where to configure." .Values.image.LIBREOFFICE }}
         imagePullPolicy: IfNotPresent
+        {{- with ( pluck .Values.resourceUnit.size .Values.resourceUnit | first ) }}
         resources:
           limits:
-            {{- if (eq "Small" .Values.resourceUnit.size) }}
-            memory: {{ .Values.resourceUnit.small.memory.max.LIBREOFFICE }}Mi
-            cpu: {{ .Values.resourceUnit.small.cpu.max.LIBREOFFICE }}m
-            {{- else if (eq "Medium" .Values.resourceUnit.size) }}
-            memory: {{ .Values.resourceUnit.medium.memory.max.LIBREOFFICE }}Mi
-            cpu: {{ .Values.resourceUnit.medium.cpu.max.LIBREOFFICE }}m
-            {{- else if (eq "Large" .Values.resourceUnit.size) }}
-            memory: {{ .Values.resourceUnit.large.memory.max.LIBREOFFICE }}Mi
-            cpu: {{ .Values.resourceUnit.large.cpu.max.LIBREOFFICE }}m
-            {{- else if (eq "Xlarge" .Values.resourceUnit.size) }}
-            memory: {{ .Values.resourceUnit.xlarge.memory.max.LIBREOFFICE }}Mi
-            cpu: {{ .Values.resourceUnit.xlarge.cpu.max.LIBREOFFICE }}m
-            {{- end }}
+            memory: {{ .memory.max.LIBREOFFICE }}Mi
+            cpu: {{ .cpu.max.LIBREOFFICE }}m
+          requests:
+            memory: {{ .memory.max.LIBREOFFICE }}Mi
+            cpu: {{ .cpu.max.LIBREOFFICE }}m
+        {{- end }}
         ports:
         - name: libreoffice
           containerPort: 8997
@@ -179,11 +130,14 @@ spec:
         - mountPath: /opt/MetricStream/SYSTEMi
           subPath: SYSTEMi
           name: data
-        - mountPath: /home/kairos
-          subPath: libre_kairos
+        - mountPath: /opt/libreoffice
+          subPath: libre_home
           name: data
         - mountPath: /tmp
           subPath: libre_tmp
+          name: data
+        - mountPath: /var/tmp
+          subPath: libre_var_tmp
           name: data
         securityContext:
           readOnlyRootFilesystem: true
@@ -191,23 +145,58 @@ spec:
         image: {{ .Values.image.LOGZIO }}
         env:
         - name:  LOGZIO_TOKEN
-          value: {{ .Values.logzio.token | quote }}
+          valueFrom:
+            secretKeyRef:
+              name: logzio-token-secret
+              key: logzio-url
         - name:  LOGZIO_URL
-          value: {{ .Values.logzio.url | quote }}
-        - name: CONTAINER_NAME
-          value: tomcat
+          valueFrom:
+            secretKeyRef:
+              name: logzio-token-secret
+              key: logzio-token
         - name: NODE_NAME
           valueFrom:
             fieldRef:
               fieldPath: spec.nodeName
-        - name: POD_NAME
-          value: tomcat
-        - name: POD_NAMESPACE
+        - name: HOST_IP
+          valueFrom:
+            fieldRef:
+              fieldPath: status.hostIP
+        - name: NAMESPACE
           valueFrom:
             fieldRef:
               fieldPath: metadata.namespace
+        - name: POD_NAME
+          valueFrom:
+            fieldRef:
+              fieldPath: metadata.name
+        - name: POD_IP
+          valueFrom:
+            fieldRef:
+              fieldPath: status.podIP
+        - name: POD_SERVICE_ACCOUNT_NAME
+          valueFrom:
+            fieldRef:
+              fieldPath: spec.serviceAccountName
+        - name: POD_UNIQUE_ID
+          valueFrom:
+            fieldRef:
+              fieldPath: metadata.uid
+        - name: CONTAINER_NAME
+          valueFrom:
+            fieldRef:
+              fieldPath: metadata.labels['container_name']
+        - name: ENVIRONMENT
+          valueFrom:
+            fieldRef:
+              fieldPath: metadata.labels['environment']
+        - name: APP_TIER
+          valueFrom:
+            fieldRef:
+              fieldPath: metadata.labels['tier']
         resources:
           limits:
+            cpu: {{ .Values.logzio.cpu }}m
             memory: {{ .Values.logzio.memory }}Mi
           requests:
             cpu: {{ .Values.logzio.cpu }}m
@@ -216,15 +205,12 @@ spec:
         - name: fluentd-config
           mountPath: /fluentd/etc/fluent.conf
           subPath: fluent.conf
-        - name: fluentd-config
-          mountPath: /fluentd/etc/tomcat.fluentd.conf
-          subPath: tomcat.fluentd.conf
         - name: data
           mountPath: /tomcat/logs
           subPath: logs
         - name: data
-          mountPath: /opt/MetricStream/SYSTEMi
-          subPath: SYSTEMi
+          mountPath: /opt/MetricStream/SYSTEMi/Systemi/log
+          subPath: SYSTEMi/Systemi/log
       imagePullSecrets:
       - name: container-registry-key
       securityContext:

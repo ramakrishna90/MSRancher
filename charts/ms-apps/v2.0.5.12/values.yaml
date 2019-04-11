@@ -1,16 +1,12 @@
-namespace:
-  NAME: ms-apps
-project:
-  PROJECT_NAME: ms-apps
+label:
+  ENVIRONMENT: development
 application:
   upgrade:
     location: {INSTANCE_DOWNLOAD_URL}
-imageCredentials:
-  registry: https://index.docker.io/v1/
 image:
   TOMCAT: metricstream/images:e13s-tomcat-9.0.10
-  DATAROUTER: metricstream/images:e13s-datarouter-2.17.7
-  ACTIVEMQ: metricstream/images:e13s-activemq-5.14.5
+  DATAROUTER: metricstream/images:e13s-datarouter-2.17.7-alpine-jre8
+  ACTIVEMQ: metricstream/images:e13s-activemq-5.14.5-alpine-jre8
   ELASTICSEARCH: metricstream/images:e13s-elasticsearch-2.4.1
   LIBREOFFICE: metricstream/images:e13s-libreoffice-5.2.3.3
   MONGO: metricstream/images:e13s-mongodb-2.6.12
@@ -24,8 +20,6 @@ image:
   TD_AGENT: metricstream/images:e13s-td-agent-2.0.0
   LOGZIO: logzio/logzio-k8s:1.0.3
 logzio:
-  url: https://listener.logz.io:8071
-  token: jOfZnYHaWzKzqeaWLiECYCdMaVulKuiP
   cpu: 100
   memory: 400
 resourceUnit:

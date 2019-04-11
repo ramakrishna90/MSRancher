@@ -7,71 +7,124 @@ spec:
   selector:
     matchLabels:
       app: datarouter
-      tier: app
-      role: master
   template:
     metadata:
       name: datarouter
       labels:
         app: datarouter
-        tier: app
-        role: master
+        tier: middle-tier
+        container_name: datarouter
+        environment: {{ .Values.label.ENVIRONMENT }}
     spec:
-      serviceAccountName: {{.Release.Namespace}}-sa
+      serviceAccountName: common-service-account
       volumes:      
       - name: datarouter
         persistentVolumeClaim:
-          claimName: datarouter
+          claimName: datarouter-pvc
+      - name: fluentd-config
+        configMap:
+          name: datarouter-fluentd-config
       containers:
       - name: datarouter
         image: {{required "Data Router Image Info is mandatory! Read the Project Documentation to understand what and where to configure." .Values.image.DATAROUTER }}
-        imagePullPolicy: IfNotPresent
-        args:
-        - java
-        - -Xms128m
-        {{- if (eq "Small" .Values.resourceUnit.size) }}
-        - -Xmx{{.Values.resourceUnit.small.memory.max.DATAROUTER }}m
-        {{- else if (eq "Medium" .Values.resourceUnit.size) }}
-        - -Xmx{{.Values.resourceUnit.medium.memory.max.DATAROUTER }}m
-        {{- else if (eq "Large" .Values.resourceUnit.size) }}
-        - -Xmx{{.Values.resourceUnit.large.memory.max.DATAROUTER }}m
-        {{- else if (eq "Xlarge" .Values.resourceUnit.size) }}
-        - -Xmx{{.Values.resourceUnit.xlarge.memory.max.DATAROUTER }}m
-        {{- end }}
-        - -DSYSTEMi_HOME=/metricstream/SYSTEMi
-        - -DJAVA_HOME=/opt/java/bin/
-        - -jar
-        - /metricstream/SYSTEMi/datarouter/data-router.jar
+        env:
+        - name: DATAROUTER_JAVA_XMX
+          valueFrom:
+            configMapKeyRef:
+              name: resource-config
+              key: DATAROUTER_JAVA_XMX
+        imagePullPolicy: Always
+        {{- with ( pluck .Values.resourceUnit.size .Values.resourceUnit | first ) }}
         resources:
           limits:
-            {{- if (eq "Small" .Values.resourceUnit.size) }}
-            memory: {{ .Values.resourceUnit.small.memory.max.DATAROUTER }}Mi
-            cpu: {{ .Values.resourceUnit.small.cpu.max.DATAROUTER }}m
-            {{- else if (eq "Medium" .Values.resourceUnit.size) }}
-            memory: {{ .Values.resourceUnit.medium.memory.max.DATAROUTER }}Mi
-            cpu: {{ .Values.resourceUnit.medium.cpu.max.DATAROUTER }}m
-            {{- else if (eq "Large" .Values.resourceUnit.size) }}
-            memory: {{ .Values.resourceUnit.large.memory.max.DATAROUTER }}Mi
-            cpu: {{ .Values.resourceUnit.large.cpu.max.DATAROUTER }}m
-            {{- else if (eq "Xlarge" .Values.resourceUnit.size) }}
-            memory: {{ .Values.resourceUnit.xlarge.memory.max.DATAROUTER }}Mi
-            cpu: {{ .Values.resourceUnit.xlarge.cpu.max.DATAROUTER }}m
-            {{- end }}
+            memory: {{ .memory.max.DATAROUTER }}Mi
+            cpu: {{ .cpu.max.DATAROUTER }}m
+          requests:
+            memory: {{ .memory.max.DATAROUTER }}Mi
+            cpu: {{ .cpu.max.DATAROUTER }}m
+        {{- end }}
         volumeMounts:
-        - mountPath: /metricstream/SYSTEMi/datarouter/datarouter.properties
+        - mountPath: /opt/datarouter/datarouter.properties
           name: datarouter
           subPath: datarouter.properties
-        - mountPath: /metricstream/SYSTEMi/datarouter/log4j.properties
+        - mountPath: /opt/datarouter/log4j.properties
           name: datarouter
           subPath: log4j.properties
-        - mountPath: /metricstream/SYSTEMi/datarouter/smc_instrumentation.json
+        - mountPath: /opt/datarouter/smc_instrumentation.json
           name: datarouter
           subPath: smc_instrumentation.json
-        - mountPath: /metricstream/SYSTEMi/datarouter/logs
+        - mountPath: /opt/datarouter/logs
           name: datarouter
           subPath: logs
         securityContext:
           readOnlyRootFilesystem: true
+      - name: fluentd
+        image: {{ .Values.image.LOGZIO }}
+        env:
+        - name:  LOGZIO_TOKEN
+          valueFrom:
+            secretKeyRef:
+              name: logzio-token-secret
+              key: logzio-url
+        - name:  LOGZIO_URL
+          valueFrom:
+            secretKeyRef:
+              name: logzio-token-secret
+              key: logzio-token
+        - name: NODE_NAME
+          valueFrom:
+            fieldRef:
+              fieldPath: spec.nodeName
+        - name: HOST_IP
+          valueFrom:
+            fieldRef:
+              fieldPath: status.hostIP
+        - name: NAMESPACE
+          valueFrom:
+            fieldRef:
+              fieldPath: metadata.namespace
+        - name: POD_NAME
+          valueFrom:
+            fieldRef:
+              fieldPath: metadata.name
+        - name: POD_IP
+          valueFrom:
+            fieldRef:
+              fieldPath: status.podIP
+        - name: POD_SERVICE_ACCOUNT_NAME
+          valueFrom:
+            fieldRef:
+              fieldPath: spec.serviceAccountName
+        - name: POD_UNIQUE_ID
+          valueFrom:
+            fieldRef:
+              fieldPath: metadata.uid
+        - name: CONTAINER_NAME
+          valueFrom:
+            fieldRef:
+              fieldPath: metadata.labels['container_name']
+        - name: ENVIRONMENT
+          valueFrom:
+            fieldRef:
+              fieldPath: metadata.labels['environment']
+        - name: APP_TIER
+          valueFrom:
+            fieldRef:
+              fieldPath: metadata.labels['tier']
+        resources:
+          limits:
+            cpu: {{ .Values.logzio.cpu }}m
+            memory: {{ .Values.logzio.memory }}Mi
+          requests:
+            cpu: {{ .Values.logzio.cpu }}m
+            memory: {{ .Values.logzio.memory }}Mi
+        volumeMounts:
+        - name: fluentd-config
+          mountPath: /fluentd/etc/fluent.conf
+          subPath: fluent.conf
+        - name: datarouter
+          mountPath: /opt/datarouter/logs
+          subPath: logs
       imagePullSecrets:
       - name: container-registry-key
       securityContext:

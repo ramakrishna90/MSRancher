@@ -1,0 +1,9 @@
+kind: ConfigMap
+apiVersion: v1
+metadata:
+  name: elasticsearch-fluentd-config
+  labels:
+    addonmanager.kubernetes.io/mode: Reconcile
+data:
+  fluent.conf: |-
+    {{ .Files.Get "config/fluentd/elasticsearch-fluent.conf" | nindent 4 }}

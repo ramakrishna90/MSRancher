@@ -11,28 +11,28 @@ spec:
       volumes:
       - name: tomcat
         persistentVolumeClaim:
-          claimName: tomcat
+          claimName: tomcat-pvc
       - name: oracle
         persistentVolumeClaim:
-          claimName: oracle
+          claimName: oracle-pvc
       - name: activemq
         persistentVolumeClaim:
-          claimName: activemq
+          claimName: activemq-pvc
       - name: elasticsearch
         persistentVolumeClaim:
-          claimName: elasticsearch
+          claimName: elasticsearch-pvc
       - name: mongo
         persistentVolumeClaim:
-          claimName: mongo
+          claimName: mongo-pvc
       - name: datarouter
         persistentVolumeClaim:
-          claimName: datarouter
+          claimName: datarouter-pvc
       containers:
       - name: instance-restore
-        image: {{required "Image Info is mandatory! Read the Project Documentation to understand what and where to configure." .Values.image.INSTANCE_RESTORE_UPGRADE }}
+        image: {{ required "Image Info is mandatory! Read the Project Documentation to understand what and where to configure." .Values.image.INSTANCE_RESTORE_UPGRADE }}
         imagePullPolicy: IfNotPresent
         args:
-        - {{ .Release.Namespace }}		
+        - {{ .Release.Namespace }}
         - k8s.metricstream.com
         volumeMounts:
         - mountPath: /opt/MetricStream/SYSTEMi
@@ -64,4 +64,3 @@ spec:
       restartPolicy: Never
       imagePullSecrets:
       - name: container-registry-key
-  
