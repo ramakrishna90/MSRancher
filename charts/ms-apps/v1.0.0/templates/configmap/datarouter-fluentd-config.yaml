@@ -1,0 +1,9 @@
+kind: ConfigMap
+apiVersion: v1
+metadata:
+  name: datarouter-fluentd-config
+  labels:
+    addonmanager.kubernetes.io/mode: Reconcile
+data:
+  fluent.conf: |-
+    {{ .Files.Get "config/fluentd/datarouter-fluent.conf" | nindent 4 }}

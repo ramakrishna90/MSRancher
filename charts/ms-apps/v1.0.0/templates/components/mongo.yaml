@@ -1,0 +1,143 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: mongo
+spec:
+  ports:
+    - name: mongo
+      protocol: TCP
+      port: 27017
+      targetPort: 27017
+  selector:
+    app: mongo
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: mongo
+spec:
+  replicas: 0
+  selector:
+    matchLabels:
+      app: mongo
+  template:
+    metadata:
+      name: mongo
+      labels:
+        app: mongo
+        tier: persistent-tier
+        container_name: mongo
+        environment: {{ .Values.label.ENVIRONMENT }}
+    spec:
+      serviceAccountName: common-service-account
+      volumes:
+      - name: data
+        persistentVolumeClaim:
+          claimName: mongo-pvc
+      - name: fluentd-config
+        configMap:
+          name: mongo-fluentd-config
+      containers:
+      - name: mongo
+        image: {{required "Image Info is mandatory! Read the Project Documentation to understand what and where to configure." .Values.image.MONGO }}
+        imagePullPolicy: IfNotPresent
+        {{- with ( pluck .Values.resourceUnit.size .Values.resourceUnit | first ) }}
+        resources:
+          limits:
+            memory: {{ .memory.max.MONGO }}Mi
+            cpu: {{ .cpu.max.MONGO }}m
+          requests:
+            memory: {{ .memory.max.MONGO }}Mi
+            cpu: {{ .cpu.max.MONGO }}m
+        {{- end }}
+        volumeMounts:
+        - mountPath: /data/db
+          name: data
+          subPath: db
+        - mountPath: /tmp
+          name: data
+          subPath: tmp
+        - mountPath: /var/log/mongodb
+          name: data
+          subPath: mongodb
+        securityContext:
+          runAsUser: 1000
+          allowPrivilegeEscalation: false
+          readOnlyRootFilesystem: true
+        ports:
+        - name: mongo
+          containerPort: 27017
+      - name: fluentd
+        image: {{ .Values.image.LOGZIO }}
+        env:
+        - name:  LOGZIO_TOKEN
+          valueFrom:
+            secretKeyRef:
+              name: logzio-token-secret
+              key: logzio-url
+        - name:  LOGZIO_URL
+          valueFrom:
+            secretKeyRef:
+              name: logzio-token-secret
+              key: logzio-token
+        - name: NODE_NAME
+          valueFrom:
+            fieldRef:
+              fieldPath: spec.nodeName
+        - name: HOST_IP
+          valueFrom:
+            fieldRef:
+              fieldPath: status.hostIP
+        - name: NAMESPACE
+          valueFrom:
+            fieldRef:
+              fieldPath: metadata.namespace
+        - name: POD_NAME
+          valueFrom:
+            fieldRef:
+              fieldPath: metadata.name
+        - name: POD_IP
+          valueFrom:
+            fieldRef:
+              fieldPath: status.podIP
+        - name: POD_SERVICE_ACCOUNT_NAME
+          valueFrom:
+            fieldRef:
+              fieldPath: spec.serviceAccountName
+        - name: POD_UNIQUE_ID
+          valueFrom:
+            fieldRef:
+              fieldPath: metadata.uid
+        - name: CONTAINER_NAME
+          valueFrom:
+            fieldRef:
+              fieldPath: metadata.labels['container_name']
+        - name: ENVIRONMENT
+          valueFrom:
+            fieldRef:
+              fieldPath: metadata.labels['environment']
+        - name: APP_TIER
+          valueFrom:
+            fieldRef:
+              fieldPath: metadata.labels['tier']
+        resources:
+          limits:
+            cpu: {{ .Values.logzio.cpu }}m
+            memory: {{ .Values.logzio.memory }}Mi
+          requests:
+            cpu: {{ .Values.logzio.cpu }}m
+            memory: {{ .Values.logzio.memory }}Mi
+        volumeMounts:
+        - name: fluentd-config
+          mountPath: /fluentd/etc/fluent.conf
+          subPath: fluent.conf
+        - name: data
+          mountPath: /var/log/mongodb
+          subPath: mongodb
+      imagePullSecrets:
+      - name: container-registry-key
+      securityContext:
+        runAsUser: 1000
+        runAsNonRoot: true
+        fsGroup: 1000
+      allowedCapabilities: null
