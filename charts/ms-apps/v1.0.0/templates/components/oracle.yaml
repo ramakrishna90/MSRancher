@@ -43,7 +43,7 @@ spec:
       containers:
       - name: oracle
         image: {{required "Image Info is mandatory! Read the Project Documentation to understand what and where to configure." .Values.image.ORACLE }}
-        imagePullPolicy: IfNotPresent
+        imagePullPolicy: Always
         env:
         - name: ORACLE_MAX_MEM
           valueFrom:

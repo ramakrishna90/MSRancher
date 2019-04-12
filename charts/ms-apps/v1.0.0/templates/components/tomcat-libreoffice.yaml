@@ -56,10 +56,13 @@ spec:
       - name: fluentd-config
         configMap:
           name: tomcat-fluentd-config
+      - name: tomcat-config
+        configMap:
+          name: tomcat-config
       containers:
       - name: tomcat
         image: {{required "Image Info is mandatory! Read the Project Documentation to understand what and where to configure." .Values.image.TOMCAT }}
-        imagePullPolicy: IfNotPresent
+        imagePullPolicy: Always
         env:
         - name: POD_NAME
           value: tomcat
@@ -73,7 +76,7 @@ spec:
               name: resource-config
               key: TOMCAT_JAVA_XMX
         - name: CLASSPATH
-          value: "/tomcat/bin/bootstrap.jar:/tomcat/bin/tomcat-juli.jar:/tomcat/extralib/*"
+          value: "/usr/local/tomcat/bin/bootstrap.jar:/usr/local/tomcat/bin/tomcat-juli.jar"
         ports:
         - name: tomcat
           containerPort: 8080
@@ -97,13 +100,22 @@ spec:
         - mountPath: /data/metricstream
           name: data
           subPath: ms_data
-        - mountPath: /tomcat/conf
-          name: data
-          subPath: conf
-        - mountPath: /tomcat/logs
+        - mountPath: /usr/local/tomcat/conf/context.xml
+          name: tomcat-config
+          subPath: context.xml
+        - mountPath: /usr/local/tomcat/conf/server.xml
+          name: tomcat-config
+          subPath: server.xml
+        - mountPath: /usr/local/tomcat/conf/logging.properties
+          name: tomcat-config
+          subPath: logging.properties
+        - mountPath: /usr/local/tomcat/conf/web.xml
+          name: tomcat-config
+          subPath: web.xml
+        - mountPath: /usr/local/tomcat/logs
           name: data
           subPath: logs
-        - mountPath: /tomcat/work
+        - mountPath: /usr/local/tomcat/work
           name: data
           subPath: work
         - mountPath: /tmp
@@ -113,7 +125,7 @@ spec:
           readOnlyRootFilesystem: true
       - name: libreoffice
         image: {{required "Image Info is mandatory! Read the Project Documentation to understand what and where to configure." .Values.image.LIBREOFFICE }}
-        imagePullPolicy: IfNotPresent
+        imagePullPolicy: Always
         {{- with ( pluck .Values.resourceUnit.size .Values.resourceUnit | first ) }}
         resources:
           limits:
@@ -206,7 +218,7 @@ spec:
           mountPath: /fluentd/etc/fluent.conf
           subPath: fluent.conf
         - name: data
-          mountPath: /tomcat/logs
+          mountPath: /usr/local/tomcat/logs
           subPath: logs
         - name: data
           mountPath: /opt/MetricStream/SYSTEMi/Systemi/log

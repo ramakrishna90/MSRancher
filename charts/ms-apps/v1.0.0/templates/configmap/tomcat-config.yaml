@@ -1,0 +1,15 @@
+kind: ConfigMap
+apiVersion: v1
+metadata:
+  name: tomcat-config
+  labels:
+    addonmanager.kubernetes.io/mode: Reconcile
+data:
+  context.xml: |- 
+    {{.Files.Get "config/tomcat/context.xml" | nindent 4 }}
+  server.xml: |-
+    {{.Files.Get "config/tomcat/server.xml" | nindent 4 }}
+  logging.properties: |-
+    {{.Files.Get "config/tomcat/logging.properties" | nindent 4 }}
+  web.xml: |-
+    {{.Files.Get "config/tomcat/web.xml" | nindent 4 }}

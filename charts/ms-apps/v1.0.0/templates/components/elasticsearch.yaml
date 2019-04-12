@@ -40,7 +40,7 @@ spec:
       containers:
       - name: elasticsearch
         image: {{required "Image Info is mandatory! Read the Project Documentation to understand what and where to configure." .Values.image.ELASTICSEARCH }}
-        imagePullPolicy: IfNotPresent
+        imagePullPolicy: Always
         {{- with ( pluck .Values.resourceUnit.size .Values.resourceUnit | first ) }}
         env:
         - name: ES_MAX_MEM

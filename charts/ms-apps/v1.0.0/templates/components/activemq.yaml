@@ -43,7 +43,7 @@ spec:
       containers:
       - name: activemq
         image: {{required "Image Info is mandatory! Read the Project Documentation to understand what and where to configure." .Values.image.ACTIVEMQ }}
-        imagePullPolicy: IfNotPresent
+        imagePullPolicy: Always
         ports:
         - name: activemq
           containerPort: 61616

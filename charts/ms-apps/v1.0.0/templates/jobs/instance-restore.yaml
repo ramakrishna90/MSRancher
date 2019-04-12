@@ -35,12 +35,12 @@ spec:
         - {{ .Release.Namespace }}
         - k8s.metricstream.com
         volumeMounts:
-        - mountPath: /opt/MetricStream/SYSTEMi
+        - mountPath: /opt/metricstream/SYSTEMi
           subPath: SYSTEMi
           name: tomcat
         - mountPath: /tomcat-config
           subPath: conf
-          name: tomcat          
+          name: tomcat
         - mountPath: /oracle
           name: oracle
           subPath: oradata
