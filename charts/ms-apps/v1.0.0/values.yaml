@@ -9,7 +9,7 @@ image:
   ACTIVEMQ: metricstream/images:e13s-activemq-5.14.5-alpine-jre8
   ELASTICSEARCH: metricstream/images:e13s-elasticsearch-2.4.1-alpine-jre8
   LIBREOFFICE: metricstream/images:e13s-libreoffice-headless-latest-alpine-jre8
-  MONGO: metricstream/images:e13s-mongodb-2.6.12
+  MONGO: monog:4.0-xenial
   ORACLE: metricstream/images:e13s-oracle-12.2.0.1
   MAINTENANCE: metricstream/images:e13s-maintenance-1.0.0
   INSTANCE_RESTORE_UPGRADE: metricstream/images:k8s-instance-restore-m7ri-M7-OCT18-U2-12c2
