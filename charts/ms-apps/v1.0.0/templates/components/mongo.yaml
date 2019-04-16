@@ -53,7 +53,7 @@ spec:
         volumeMounts:
         - mountPath: /data/db
           name: data
-          subPath: db
+          subPath: db2
         - mountPath: /tmp
           name: data
           subPath: tmp
@@ -137,7 +137,7 @@ spec:
       imagePullSecrets:
       - name: container-registry-key
       securityContext:
-        runAsUser: 1000
+        runAsUser: 999
         runAsNonRoot: true
-        fsGroup: 1000
+        fsGroup: 999
       allowedCapabilities: null
