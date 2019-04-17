@@ -1,0 +1,6 @@
+<Context>
+    <WatchedResource>WEB-INF/web.xml</WatchedResource>
+    <WatchedResource>WEB-INF/tomcat-web.xml</WatchedResource>
+    <WatchedResource>${catalina.base}/conf/web.xml</WatchedResource>
+    <Resource auth="Container" connectionInitSql="select 1 from dual" driverClassName="oracle.jdbc.OracleDriver" factory="com.metricstream.util.KMSEncryptedDataSourceFactory" idleTimeout="60000" jdbcUrl="jdbc:oracle:thin:@oracle:1521:orcl" leakDetectionThreshold="300000" maximumPoolSize="2000" minimumIdle="100" name="jdbc/oracle/msi" password="3EOOI+QfOAwE88XIppOlZA==" type="javax.sql.DataSource" username="METRICSTREAM"/>
+</Context>

@@ -1,0 +1,232 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: tomcat-service
+spec:
+  ports:
+    - name: tomcat-service-port
+      protocol: TCP
+      port: 80
+      targetPort: 8080
+  selector:
+    app: tomcat-deployment
+  {{- if (eq "GKE" .Values.cloudService.provider) }}
+  type: NodePort
+  {{- end }}
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: tomcat-jmx-service
+spec:
+  ports:
+    - name: tomcat-jmx-service-port
+      protocol: TCP
+      port: 8888
+      targetPort: 8888
+  selector:
+    app: tomcat-deployment
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: tomcat-deployment
+spec:
+  replicas: 0
+  selector:
+    matchLabels:
+      app: tomcat
+  template:
+    metadata:
+      name: tomcat
+      labels:
+        app: tomcat
+        tier: frontend
+        container_name: tomcat
+        environment: {{ .Values.label.ENVIRONMENT }}
+    spec:
+      serviceAccountName: common-service-account
+      volumes:
+      - name: tomcat-data-volume
+        persistentVolumeClaim:
+          claimName: tomcat-persistent-volume-claim
+      - name: metricstream-license-keys-volume
+        secret:
+          secretName: metricstream-license-keys-secret
+      - name: tomcat-fluentd-config-volume
+        configMap:
+          name: tomcat-fluentd-configmap
+      - name: tomcat-configuration-volume
+        configMap:
+          name: tomcat-configuration-configmap
+      containers:
+      - name: tomcat-container
+        image: {{required "Image Info is mandatory! Read the Project Documentation to understand what and where to configure." .Values.image.TOMCAT }}
+        imagePullPolicy: IfNotPresent
+        env:
+        - name: POD_NAME
+          value: tomcat
+        - name: POD_NAMESPACE
+          valueFrom:
+            fieldRef:
+              fieldPath: metadata.namespace
+        - name: TOMCAT_JAVA_XMX
+          valueFrom:
+            configMapKeyRef:
+              name: resource-unit-configmap
+              key: TOMCAT_JAVA_XMX
+        - name: CLASSPATH
+          value: "/usr/local/tomcat/bin/bootstrap.jar:/usr/local/tomcat/bin/tomcat-juli.jar"
+        ports:
+        - name: tomcat-container-port
+          containerPort: 8080
+        - name: tomcat-container-jmx-port
+          containerPort: 8888
+        {{- with ( pluck .Values.resourceUnit.size .Values.resourceUnit | first ) }}
+        resources:
+          limits:
+            memory: {{ .memory.max.TOMCAT }}Mi
+            cpu: {{ .cpu.max.TOMCAT }}m
+          requests:
+            memory: {{ .memory.max.TOMCAT }}Mi
+            cpu: {{ .cpu.max.TOMCAT }}m
+        {{- end }}
+        volumeMounts:
+        - mountPath: /opt/MetricStream/SYSTEMi
+          subPath: SYSTEMi
+          name: tomcat-data-volume
+        - mountPath: /opt/MetricStream/SYSTEMi/Systemi/keys
+          name: metricstream-license-keys-volume
+        - mountPath: /data/metricstream
+          name: tomcat-data-volume
+          subPath: ms_data
+        - mountPath: /usr/local/tomcat/conf/context.xml
+          name: tomcat-configuration-volume
+          subPath: context.xml
+        - mountPath: /usr/local/tomcat/conf/server.xml
+          name: tomcat-configuration-volume
+          subPath: server.xml
+        - mountPath: /usr/local/tomcat/conf/logging.properties
+          name: tomcat-configuration-volume
+          subPath: logging.properties
+        - mountPath: /usr/local/tomcat/conf/web.xml
+          name: tomcat-configuration-volume
+          subPath: web.xml
+        - mountPath: /usr/local/tomcat/logs
+          name: tomcat-data-volume
+          subPath: logs
+        - mountPath: /usr/local/tomcat/work
+          name: tomcat-data-volume
+          subPath: work
+        - mountPath: /tmp
+          name: tomcat-data-volume
+          subPath: tomcat_tmp
+        securityContext:
+          readOnlyRootFilesystem: true
+      - name: libreoffice-container
+        image: {{required "Image Info is mandatory! Read the Project Documentation to understand what and where to configure." .Values.image.LIBREOFFICE }}
+        imagePullPolicy: IfNotPresent
+        {{- with ( pluck .Values.resourceUnit.size .Values.resourceUnit | first ) }}
+        resources:
+          limits:
+            memory: {{ .memory.max.LIBREOFFICE }}Mi
+            cpu: {{ .cpu.max.LIBREOFFICE }}m
+          requests:
+            memory: {{ .memory.max.LIBREOFFICE }}Mi
+            cpu: {{ .cpu.max.LIBREOFFICE }}m
+        {{- end }}
+        ports:
+        - name: libreoffice-container-port
+          containerPort: 8997
+        volumeMounts:
+        - mountPath: /opt/MetricStream/SYSTEMi
+          subPath: SYSTEMi
+          name: data
+        - mountPath: /opt/libreoffice
+          subPath: libre_home
+          name: data
+        - mountPath: /tmp
+          subPath: libre_tmp
+          name: data
+        - mountPath: /var/tmp
+          subPath: libre_var_tmp
+          name: data
+        securityContext:
+          readOnlyRootFilesystem: true
+      - name: fluentd
+        image: {{ .Values.image.LOGZIO }}
+        env:
+        - name:  LOGZIO_TOKEN
+          valueFrom:
+            secretKeyRef:
+              name: logzio-token-secret
+              key: logzio-url
+        - name:  LOGZIO_URL
+          valueFrom:
+            secretKeyRef:
+              name: logzio-token-secret
+              key: logzio-token
+        - name: NODE_NAME
+          valueFrom:
+            fieldRef:
+              fieldPath: spec.nodeName
+        - name: HOST_IP
+          valueFrom:
+            fieldRef:
+              fieldPath: status.hostIP
+        - name: NAMESPACE
+          valueFrom:
+            fieldRef:
+              fieldPath: metadata.namespace
+        - name: POD_NAME
+          valueFrom:
+            fieldRef:
+              fieldPath: metadata.name
+        - name: POD_IP
+          valueFrom:
+            fieldRef:
+              fieldPath: status.podIP
+        - name: POD_SERVICE_ACCOUNT_NAME
+          valueFrom:
+            fieldRef:
+              fieldPath: spec.serviceAccountName
+        - name: POD_UNIQUE_ID
+          valueFrom:
+            fieldRef:
+              fieldPath: metadata.uid
+        - name: CONTAINER_NAME
+          valueFrom:
+            fieldRef:
+              fieldPath: metadata.labels['container_name']
+        - name: ENVIRONMENT
+          valueFrom:
+            fieldRef:
+              fieldPath: metadata.labels['environment']
+        - name: APP_TIER
+          valueFrom:
+            fieldRef:
+              fieldPath: metadata.labels['tier']
+        resources:
+          limits:
+            cpu: {{ .Values.logzio.cpu }}m
+            memory: {{ .Values.logzio.memory }}Mi
+          requests:
+            cpu: {{ .Values.logzio.cpu }}m
+            memory: {{ .Values.logzio.memory }}Mi
+        volumeMounts:
+        - name: tomcat-fluentd-config-volume
+          mountPath: /fluentd/etc/fluent.conf
+          subPath: fluent.conf
+        - name: data
+          mountPath: /usr/local/tomcat/logs
+          subPath: logs
+        - name: data
+          mountPath: /opt/MetricStream/SYSTEMi/Systemi/log
+          subPath: SYSTEMi/Systemi/log
+      imagePullSecrets:
+      - name: container-registry-key-secret
+      securityContext:
+        runAsUser: 1000
+        runAsNonRoot: true
+        fsGroup: 1000
+      allowedCapabilities: null

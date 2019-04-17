@@ -1,0 +1,14 @@
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: oracle-persistent-volume-claim
+  annotations:
+    volume.beta.kubernetes.io/storage-class: ms-storage-class
+spec:
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    {{- with ( pluck .Values.resourceUnit.size .Values.resourceUnit | first ) }}
+    requests:
+      storage: {{ .storage.size.ORACLE }}Gi
+    {{- end }}

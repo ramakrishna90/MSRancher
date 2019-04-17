@@ -1,0 +1,32 @@
+<Server port="8271" shutdown="SHUTDOWN">
+    <Listener className="org.apache.catalina.startup.VersionLoggerListener" />
+    <Listener className="org.apache.catalina.core.AprLifecycleListener" SSLEngine="on" />
+    <Listener className="org.apache.catalina.core.JreMemoryLeakPreventionListener" />
+    <Listener className="org.apache.catalina.mbeans.GlobalResourcesLifecycleListener" />
+    <Listener className="org.apache.catalina.core.ThreadLocalLeakPreventionListener" />
+    <Service name="Catalina">
+        <Connector port="8080"
+                   protocol="HTTP/1.1"
+                   connectionTimeout="20000"
+                   maxHttpHeaderSize="65536"
+                   secure="false" />
+        <Engine name="Catalina"
+                defaultHost="localhost"
+                jvmRoute="worker1">
+            <Host name="localhost"
+                  appBase="/opt/metricstream/SYSTEMi/Systemi/webapp"
+                  unpackWARs="true"
+                  autoDeploy="true"
+                  xmlValidation="false"
+                  xmlNamespaceAware="false">
+                <Context path="/metricstream"  docBase="/opt/metricstream/SYSTEMi/Systemi/webapp" />
+                <Context path="/" docBase="/opt/metricstream/SYSTEMi/Systemi/Resource/Html/" />
+                <Context path="/ui" docBase="/opt/metricstream/SYSTEMi/Systemi/Resource/Html/ui" >
+                    <Valve className="org.apache.catalina.valves.rewrite.RewriteValve" />
+                </Context>
+                <Context path="/si_image" docBase="/opt/metricstream/SYSTEMi/Systemi/Resource/images" />
+            </Host>
+        </Engine>
+    </Service>
+</Server>
+

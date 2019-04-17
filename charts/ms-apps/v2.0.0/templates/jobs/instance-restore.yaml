@@ -1,0 +1,66 @@
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: instance-restore
+spec:
+  template:
+    metadata:
+      name: instance-restore
+    spec:
+      serviceAccountName: secret-access-sa
+      volumes:
+      - name: tomcat
+        persistentVolumeClaim:
+          claimName: tomcat-persistent-volume-claim
+      - name: oracle
+        persistentVolumeClaim:
+          claimName: oracle-persistent-volume-claim
+      - name: activemq
+        persistentVolumeClaim:
+          claimName: activemq-persistent-volume-claim
+      - name: elasticsearch
+        persistentVolumeClaim:
+          claimName: elasticsearch-persistent-volume-claim
+      - name: mongo
+        persistentVolumeClaim:
+          claimName: mongodb-persistent-volume-claim
+      - name: datarouter
+        persistentVolumeClaim:
+          claimName: datarouter-persistent-volume-claim
+      containers:
+      - name: instance-restore
+        image: {{ required "Image Info is mandatory! Read the Project Documentation to understand what and where to configure." .Values.image.INSTANCE_RESTORE_UPGRADE }}
+        imagePullPolicy: IfNotPresent
+        args:
+        - {{ .Release.Namespace }}
+        - k8s.metricstream.com
+        volumeMounts:
+        - mountPath: /opt/metricstream/SYSTEMi
+          subPath: SYSTEMi
+          name: tomcat
+        - mountPath: /tomcat-configuration-configmap
+          subPath: conf
+          name: tomcat
+        - mountPath: /oracle
+          name: oracle
+          subPath: oradata
+        - mountPath: /activemq
+          subPath: activemq
+          name: activemq
+        - mountPath: /activemq-configuration-configmap
+          subPath: conf
+          name: activemq
+        - mountPath: /elasticsearch
+          subPath: elasticsearch
+          name: elasticsearch
+        - mountPath: /elasticsearch-config
+          subPath: conf
+          name: elasticsearch
+        - mountPath: /mongo
+          subPath: db
+          name: mongo
+        - mountPath: /datarouter-config
+          name: datarouter
+      restartPolicy: Never
+      imagePullSecrets:
+      - name: container-registry-key-secret
