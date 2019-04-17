@@ -40,6 +40,12 @@ spec:
       containers:
       - name: mongo
         image: {{required "Image Info is mandatory! Read the Project Documentation to understand what and where to configure." .Values.image.MONGO }}
+        env:
+        - name:  MONGO_MS_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: mongodb-password-secret
+              key: mongo-pwd
         imagePullPolicy: Always
         {{- with ( pluck .Values.resourceUnit.size .Values.resourceUnit | first ) }}
         resources:
@@ -61,7 +67,8 @@ spec:
           name: data
           subPath: mongodb
         securityContext:
-          runAsUser: 1000
+          runAsUser: 999
+          fsGroup: 999
           allowPrivilegeEscalation: false
           readOnlyRootFilesystem: true
         ports:
@@ -134,10 +141,11 @@ spec:
         - name: data
           mountPath: /var/log/mongodb
           subPath: mongodb
+        securityContext:
+          runAsUser: 1000
+          fsGroup: 1000
       imagePullSecrets:
       - name: container-registry-key
       securityContext:
-        runAsUser: 999
         runAsNonRoot: true
-        fsGroup: 999
       allowedCapabilities: null
