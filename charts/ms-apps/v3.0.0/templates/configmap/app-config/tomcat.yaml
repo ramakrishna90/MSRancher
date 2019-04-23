@@ -1,0 +1,12 @@
+kind: ConfigMap
+apiVersion: v1
+metadata:
+  name: tomcat-configuration-configmap
+  labels:
+    addonmanager.kubernetes.io/mode: Reconcile
+data:
+{{- $root := .}}
+{{- range $path, $bytes := .Files.Glob "config/tomcat/*"}}
+{{- base $path | nindent 2}}: |-
+{{- $root.Files.Get $path | nindent 4}}
+{{- end}}

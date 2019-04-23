@@ -1,0 +1,59 @@
+{
+  "template": "smc_instrumentation",
+  "mappings": {
+    "_default_": {
+      "_source": {
+        "enabled": true
+      },
+      "_all": {
+        "enabled": false
+      },
+      "dynamic_templates": [
+        {
+          "all_fields": {
+            "match": "*",
+            "mapping": {
+              "store": true,
+              "index": "not_analyzed"
+            }
+          }
+        }
+      ],
+      "properties": {
+        "timestamp": {
+          "type": "long",
+          "store": true
+        },
+            "id": {
+              "type": "long",
+              "store": true
+            },
+			"pid": {
+              "type": "long",
+              "store": true
+            },
+        "dateTime": {
+          "type": "date",
+          "store": true
+        },
+        "newValue": {
+          "properties": {
+            "time": {
+              "type": "long",
+              "store": true
+            },
+            "transactionId": {
+              "type": "long",
+              "store": true
+            },
+        	"associatedTransactionId": {
+              "type": "long",
+              "store": true
+            }
+          }
+        }
+      }
+    }
+  }
+}
+

@@ -1,0 +1,18 @@
+<!--<?xml version="1.0"?>-->
+ <!--<MODULE NAME="MetricStream Signed Properties">-->
+  <!--<SYSTEM>-->
+   <!--<PROPERTIES>-->
+<ENTERPRISE NAME="MetricStream">
+         <PROPERTY NAME="LICENSEE">Docker</PROPERTY>
+         <PROPERTY NAME="MAX_USERS">1000000</PROPERTY>
+         <PROPERTY NAME="MAX_CONCURRENT_USERS">1000000</PROPERTY>
+         <PROPERTY NAME="CONCURRENT_USERS_OVERFLOW">1000000</PROPERTY>
+         <PROPERTY NAME="MAX_METRICS">1000000</PROPERTY>
+         <PROPERTY NAME="EXPIRATION">Mon, 05-Jan-2026 03:23:06 GMT</PROPERTY>
+         <PROPERTY NAME="MULTIPLE_LOGIN">yes</PROPERTY>
+         <SIGNATURE NAME="MetricSign" ISSUER="MetricStream, Inc." METHOD="DSA-1" PUBLIC_KEY="file://localhost/&key_root;/keys/MetricStream_key.pub">302c02143c128565dd7c01078176a932a9b86c7ff1ec893002146d4dcd739edc37e4311298b5dddf2f40ecc8c83e
+         </SIGNATURE>
+ </ENTERPRISE> 
+    <!--</PROPERTIES>-->
+   <!--</SYSTEM>-->
+ <!--</MODULE>-->

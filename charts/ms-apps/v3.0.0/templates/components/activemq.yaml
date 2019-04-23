@@ -1,0 +1,171 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: activemq-service
+spec:
+  ports:
+    - name: activemq-service-port
+      protocol: TCP
+      port: 61616
+      targetPort: 61616
+  selector:
+    app: activemq-deployment
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: activemq-deployment
+spec:
+  replicas: 0
+  selector:
+    matchLabels:
+      app: activemq
+  template:
+    metadata:
+      name: activemq
+      labels:
+        app: activemq
+        tier: message-queue
+        container_name: activemq
+        environment: {{ .Values.label.ENVIRONMENT }}
+    spec:
+      serviceAccountName: common-service-account
+      volumes:
+      - name: activemq-data-volume
+        persistentVolumeClaim:
+          claimName: activemq-persistent-volume-claim
+      - name: activemq-fluentd-configmap-volume
+        configMap:
+          name: activemq-fluentd-configmap
+      - name: activemq-configuration-configmap-volume
+        configMap:
+          name: activemq-configuration-configmap
+      containers:
+      - name: activemq-container
+        image: {{required "Image Info is mandatory! Read the Project Documentation to understand what and where to configure." .Values.image.ACTIVEMQ }}
+        imagePullPolicy: IfNotPresent
+        ports:
+        - name: activemq-port
+          containerPort: 61616
+        env:
+        - name: ACTIVEMQ_MAX_MEM
+          valueFrom:
+            configMapKeyRef:
+              name: resource-unit-configmap
+              key: ACTIVEMQ_MAX_MEM
+        {{- with ( pluck .Values.resourceUnit.size .Values.resourceUnit | first ) }}
+        resources:
+          limits:
+            memory: {{ .memory.max.ACTIVEMQ }}Mi
+            cpu: {{ .cpu.max.ACTIVEMQ }}m
+          requests:
+            memory: {{ .memory.max.ACTIVEMQ }}Mi
+            cpu: {{ .cpu.max.ACTIVEMQ }}m
+        {{- end }}
+        volumeMounts:
+        - mountPath: /opt/activemq/data
+          name: activemq-data-volume
+          subPath: activemq
+        - mountPath: /opt/activemq/conf/log4j.properties
+          name: activemq-configuration-configmap-volume
+          subPath: log4j.properties
+        - mountPath: /opt/activemq/conf/jetty.xml
+          name: activemq-configuration-configmap-volume
+          subPath: jetty.xml
+        - mountPath: /opt/activemq/conf/activemq.xml
+          name: activemq-configuration-configmap-volume
+          subPath: activemq.xml
+        - mountPath: /opt/activemq/tmp
+          name: activemq-data-volume
+          subPath: activemq_tmp
+        - mountPath: /tmp
+          name: activemq-data-volume
+          subPath: tmp
+        securityContext:
+          readOnlyRootFilesystem: true
+      - name: fluentd-container
+        image: {{ .Values.image.LOGZIO }}
+        env:
+        - name:  LOGZIO_TOKEN
+          valueFrom:
+            secretKeyRef:
+              name: logzio-token-secret
+              key: logzio-url
+        - name:  LOGZIO_URL
+          valueFrom:
+            secretKeyRef:
+              name: logzio-token-secret
+              key: logzio-token
+        - name: NODE_NAME
+          valueFrom:
+            fieldRef:
+              fieldPath: spec.nodeName
+        - name: HOST_IP
+          valueFrom:
+            fieldRef:
+              fieldPath: status.hostIP
+        - name: NAMESPACE
+          valueFrom:
+            fieldRef:
+              fieldPath: metadata.namespace
+        - name: POD_NAME
+          valueFrom:
+            fieldRef:
+              fieldPath: metadata.name
+        - name: POD_IP
+          valueFrom:
+            fieldRef:
+              fieldPath: status.podIP
+        - name: POD_SERVICE_ACCOUNT_NAME
+          valueFrom:
+            fieldRef:
+              fieldPath: spec.serviceAccountName
+        - name: POD_UNIQUE_ID
+          valueFrom:
+            fieldRef:
+              fieldPath: metadata.uid
+        - name: CONTAINER_NAME
+          valueFrom:
+            fieldRef:
+              fieldPath: metadata.labels['container_name']
+        - name: ENVIRONMENT
+          valueFrom:
+            fieldRef:
+              fieldPath: metadata.labels['environment']
+        - name: APP_TIER
+          valueFrom:
+            fieldRef:
+              fieldPath: metadata.labels['tier']
+        - name: CONTAINER_NAME
+          value: activemq
+        - name: NODE_NAME
+          valueFrom:
+            fieldRef:
+              fieldPath: spec.nodeName
+        - name: POD_NAME
+          value: activemq
+        - name: NAMESPACE
+          valueFrom:
+            fieldRef:
+              fieldPath: metadata.namespace
+        resources:
+          limits:
+            cpu: {{ .Values.logzio.cpu }}m
+            memory: {{ .Values.logzio.memory }}Mi
+          requests:
+            cpu: {{ .Values.logzio.cpu }}m
+            memory: {{ .Values.logzio.memory }}Mi
+        volumeMounts:
+        - name: activemq-fluentd-configmap-volume
+          mountPath: /fluentd/etc/fluent.conf
+          subPath: fluent.conf
+        - name: activemq-data-volume
+          mountPath: /opt/activemq/data
+          subPath: activemq
+      imagePullSecrets:
+        - name: container-registry-key-secret
+      securityContext:
+        runAsUser: 1000
+        runAsNonRoot: true
+        fsGroup: 1000
+      allowedCapabilities: null
