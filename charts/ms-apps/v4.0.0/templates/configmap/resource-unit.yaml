@@ -1,0 +1,14 @@
+kind: ConfigMap
+apiVersion: v1
+metadata:
+  name: resource-unit-configmap
+  labels:
+    addonmanager.kubernetes.io/mode: Reconcile
+data:
+  {{- with ( pluck .Values.resourceUnit.size .Values.resourceUnit | first ) }}
+  ACTIVEMQ_MAX_MEM: {{ .memory.max.ACTIVEMQ | quote }}
+  DATAROUTER_JAVA_XMX: {{ .memory.max.DATAROUTER | quote }}
+  ELASTICSEARCH_JAVA_XMX: {{ .memory.max.ELASTICSEARCH | quote }}
+  ORACLE_MAX_MEM: {{ .memory.max.ORACLE | quote }}
+  TOMCAT_JAVA_XMX: {{ .memory.max.TOMCAT | quote }}
+  {{- end }}

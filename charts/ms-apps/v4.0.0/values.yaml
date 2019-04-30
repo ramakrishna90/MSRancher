@@ -1,0 +1,129 @@
+label:
+  ENVIRONMENT: development
+application:
+  upgrade:
+    location: {INSTANCE_DOWNLOAD_URL}
+image:
+  TOMCAT: metricstreaminc/tomcat:9.0.17-alpine-jre8u212-b03-ms
+  DATAROUTER: metricstreaminc/datarouter:2.17.7-alpine-jre8u212-b03
+  ACTIVEMQ: metricstreaminc/activemq:5.14.5-alpine-jre8u212-b03
+  ELASTICSEARCH: metricstreaminc/elasticsearch:2.4.1-alpine-jre8u212-b03-ms-7.0-SP3-P3
+  LIBREOFFICE: metricstreaminc/libreoffice:6.1.4.2-alpine-jre8u212-b03
+  MONGO: metricstreaminc/mongodb:4.1.10-bionic
+  ORACLE: metricstreaminc/oracle:12.2.0.1-ee
+  MAINTENANCE: metricstream/images:e13s-maintenance-1.0.0
+  INSTANCE_RESTORE_UPGRADE: metricstream/images:e13s-instance-restore-m7ri-M7-FEB-2019-12c2
+  KIBANA: docker.elastic.co/kibana/kibana-oss:6.3.2
+  FLUENTD: k8s.gcr.io/fluentd-elasticsearch:v2.2.0
+  ELASTICSEARCH_LOGGING: k8s.gcr.io/elasticsearch:v6.3.0
+  LOGSTASH: metricstreaminc/logstash:7.0.0-ojdbc6
+  TD_AGENT: metricstream/images:e13s-td-agent-2.0.0
+  LOGZIO: logzio/logzio-k8s:1.0.3
+logzio:
+  cpu: 100
+  memory: 400
+resourceUnit:
+  small:
+    storage:
+      size:
+        ACTIVEMQ: 6
+        ELASTICSEARCH: 6
+        MONGO: 6
+        ORACLE: 25
+        TOMCAT: 12
+    memory:
+      max:
+        ORACLE: 6144
+        TOMCAT: 4096
+        ACTIVEMQ: 1024
+        ELASTICSEARCH: 2048
+        MONGO: 2048
+        DATAROUTER: 1024
+        LIBREOFFICE: 1024
+    cpu:
+      max:
+        ORACLE: 1000
+        TOMCAT: 1000
+        ACTIVEMQ: 250
+        ELASTICSEARCH: 500
+        MONGO: 250
+        DATAROUTER: 250
+        LIBREOFFICE: 250
+  medium: 
+    storage:
+      size:
+        ACTIVEMQ: 50
+        ELASTICSEARCH: 100
+        MONGO: 55
+        ORACLE: 400
+        TOMCAT: 400
+    memory:
+      max:
+        ORACLE: 12288
+        TOMCAT: 8192
+        ACTIVEMQ: 2048
+        ELASTICSEARCH: 4096
+        MONGO: 2048
+        DATAROUTER: 2048
+        LIBREOFFICE: 2048
+    cpu:
+      max:
+        ORACLE: 3000
+        TOMCAT: 2000
+        ACTIVEMQ: 500
+        ELASTICSEARCH: 1000
+        MONGO: 500
+        DATAROUTER: 500
+        LIBREOFFICE: 500
+  large:
+    storage:
+      size:
+        ACTIVEMQ: 100
+        ELASTICSEARCH: 300
+        MONGO: 95
+        ORACLE: 750
+        TOMCAT: 750
+    memory:
+      max:
+        ORACLE: 24576
+        TOMCAT: 18432
+        ACTIVEMQ: 4096
+        ELASTICSEARCH: 8192
+        MONGO: 4096
+        DATAROUTER: 4096
+        LIBREOFFICE: 2048
+    cpu:
+      max:
+        ORACLE: 6000
+        TOMCAT: 4000
+        ACTIVEMQ: 1000
+        ELASTICSEARCH: 2000
+        MONGO: 1000
+        DATAROUTER: 1000
+        LIBREOFFICE: 1000
+  xlarge:
+    storage:
+      size:
+        ACTIVEMQ: 100
+        ELASTICSEARCH: 500
+        MONGO: 395
+        ORACLE: 1500
+        TOMCAT: 1500
+    memory:
+      max:
+        ORACLE: 49152
+        TOMCAT: 36864
+        ACTIVEMQ: 8192
+        ELASTICSEARCH: 16384
+        MONGO: 8192
+        DATAROUTER: 8192
+        LIBREOFFICE: 4096
+    cpu:
+      max:
+        ORACLE: 12000
+        TOMCAT: 8000
+        ACTIVEMQ: 2000
+        ELASTICSEARCH: 4000
+        MONGO: 2000
+        DATAROUTER: 2000
+        LIBREOFFICE: 2000

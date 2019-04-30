@@ -1,86 +1,64 @@
-apiVersion: v1
-kind: Service
-metadata:
-  name: activemq-service
-spec:
-  ports:
-    - name: activemq-service-port
-      protocol: TCP
-      port: 61616
-      targetPort: 61616
-  selector:
-    app: activemq-deployment
----
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: activemq-deployment
+  name: datarouter-deployment
 spec:
   replicas: 0
   selector:
     matchLabels:
-      app: activemq
+      app: datarouter
   template:
     metadata:
-      name: activemq
+      name: datarouter
       labels:
-        app: activemq
-        tier: message-queue
-        container_name: activemq
+        app: datarouter
+        tier: middle-tier
+        container_name: datarouter
         environment: {{ .Values.label.ENVIRONMENT }}
     spec:
       serviceAccountName: common-service-account
-      volumes:
-      - name: activemq-data-volume
+      volumes:      
+      - name: datarouter-data-volume
         persistentVolumeClaim:
-          claimName: activemq-persistent-volume-claim
-      - name: activemq-fluentd-configmap-volume
+          claimName: datarouter-persistent-volume-claim
+      - name: datarouter-fluentd-config-volume
         configMap:
-          name: activemq-fluentd-configmap
-      - name: activemq-configuration-configmap-volume
+          name: datarouter-fluentd-configmap
+      - name: datarouter-configuration-configmap-volume
         configMap:
-          name: activemq-configuration-configmap
+          name: datarouter-configuration-configmap
       containers:
-      - name: activemq-container
-        image: {{required "Image Info is mandatory! Read the Project Documentation to understand what and where to configure." .Values.image.ACTIVEMQ }}
-        imagePullPolicy: IfNotPresent
-        ports:
-        - name: activemq-port
-          containerPort: 61616
+      - name: datarouter-container
+        image: {{required "Data Router Image Info is mandatory! Read the Project Documentation to understand what and where to configure." .Values.image.DATAROUTER }}
         env:
-        - name: ACTIVEMQ_MAX_MEM
+        - name: DATAROUTER_JAVA_XMX
           valueFrom:
             configMapKeyRef:
               name: resource-unit-configmap
-              key: ACTIVEMQ_MAX_MEM
+              key: DATAROUTER_JAVA_XMX
+        imagePullPolicy: Always
         {{- with ( pluck .Values.resourceUnit.size .Values.resourceUnit | first ) }}
         resources:
           limits:
-            memory: {{ .memory.max.ACTIVEMQ }}Mi
-            cpu: {{ .cpu.max.ACTIVEMQ }}m
+            memory: {{ .memory.max.DATAROUTER }}Mi
+            cpu: {{ .cpu.max.DATAROUTER }}m
           requests:
-            memory: {{ .memory.max.ACTIVEMQ }}Mi
-            cpu: {{ .cpu.max.ACTIVEMQ }}m
+            memory: {{ .memory.max.DATAROUTER }}Mi
+            cpu: {{ .cpu.max.DATAROUTER }}m
         {{- end }}
         volumeMounts:
-        - mountPath: /opt/activemq/data
-          name: activemq-data-volume
-          subPath: activemq
-        - mountPath: /opt/activemq/conf/log4j.properties
-          name: activemq-configuration-configmap-volume
+        - mountPath: /opt/datarouter/datarouter.properties
+          name: datarouter-configuration-configmap-volume
+          subPath: datarouter.properties
+        - mountPath: /opt/datarouter/log4j.properties
+          name: datarouter-configuration-configmap-volume
           subPath: log4j.properties
-        - mountPath: /opt/activemq/conf/jetty.xml
-          name: activemq-configuration-configmap-volume
-          subPath: jetty.xml
-        - mountPath: /opt/activemq/conf/activemq.xml
-          name: activemq-configuration-configmap-volume
-          subPath: activemq.xml
-        - mountPath: /opt/activemq/tmp
-          name: activemq-data-volume
-          subPath: activemq_tmp
-        - mountPath: /tmp
-          name: activemq-data-volume
-          subPath: tmp
+        - mountPath: /opt/datarouter/smc_instrumentation.json
+          name: datarouter-configuration-configmap-volume
+          subPath: smc_instrumentation.json
+        - mountPath: /opt/datarouter/logs
+          name: datarouter-data-volume
+          subPath: logs
         securityContext:
           readOnlyRootFilesystem: true
       - name: fluentd-container
@@ -136,18 +114,6 @@ spec:
           valueFrom:
             fieldRef:
               fieldPath: metadata.labels['tier']
-        - name: CONTAINER_NAME
-          value: activemq
-        - name: NODE_NAME
-          valueFrom:
-            fieldRef:
-              fieldPath: spec.nodeName
-        - name: POD_NAME
-          value: activemq
-        - name: NAMESPACE
-          valueFrom:
-            fieldRef:
-              fieldPath: metadata.namespace
         resources:
           limits:
             cpu: {{ .Values.logzio.cpu }}m
@@ -156,16 +122,17 @@ spec:
             cpu: {{ .Values.logzio.cpu }}m
             memory: {{ .Values.logzio.memory }}Mi
         volumeMounts:
-        - name: activemq-fluentd-configmap-volume
+        - name: datarouter-fluentd-config-volume
           mountPath: /fluentd/etc/fluent.conf
           subPath: fluent.conf
-        - name: activemq-data-volume
-          mountPath: /opt/activemq/data
-          subPath: activemq
+        - name: datarouter-data-volume
+          mountPath: /opt/datarouter/logs
+          subPath: logs
       imagePullSecrets:
-        - name: container-registry-key-secret
+      - name: container-registry-key-secret
       securityContext:
         runAsUser: 1000
         runAsNonRoot: true
         fsGroup: 1000
       allowedCapabilities: null
+
