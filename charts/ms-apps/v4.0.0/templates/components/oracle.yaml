@@ -71,25 +71,28 @@ spec:
           name: oracle-dshm-volume
         - mountPath: /opt/oracle/product/12.2.0.1/dbhome_1/network/admin
           name: oracle-data-volume
-          subPath: admin
+          subPath: opt_oracle/product/12.2.0.1/dbhome_1/network/admin
         - mountPath: /opt/oracle/admin/orcl/adump
           name: oracle-data-volume
-          subPath: adump
+          subPath: opt_oracle/admin/orcl/adump
         - mountPath: /opt/oracle/product/12.2.0.1/dbhome_1/dbs
           name: oracle-data-volume
-          subPath: dbs
+          subPath: opt_oracle/product/12.2.0.1/dbhome_1/dbs
         - mountPath: /opt/oracle/diag/rdbms/orcl
           name: oracle-data-volume
-          subPath: orcl
+          subPath: opt_oracle/diag/rdbms/orcl
         - mountPath: /opt/oracle/product/12.2.0.1/dbhome_1/rdbms/log
           name: oracle-data-volume
-          subPath: log
+          subPath: opt_oracle/product/12.2.0.1/dbhome_1/rdbms/log
         - mountPath: /tmp
           name: oracle-data-volume
           subPath: tmp
         - mountPath: /var/tmp
           name: oracle-data-volume
           subPath: var_tmp
+        securityContext:
+          runAsUser: 54321
+          readOnlyRootFilesystem: true
       - name: fluentd-container
         image: {{ .Values.image.LOGZIO }}
         env:
@@ -157,10 +160,11 @@ spec:
         - name: oracle-data-volume
           mountPath: /opt/oracle/diag/rdbms/orcl
           subPath: orcl
+        securityContext:
+          runAsUser: 1000
       imagePullSecrets:
       - name: container-registry-key-secret
       securityContext:
-        runAsUser: 54321
         runAsNonRoot: true
         fsGroup: 54321
       allowedCapabilities: null
