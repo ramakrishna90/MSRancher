@@ -1,0 +1,7 @@
+<Context>
+    <CookieProcessor className="org.apache.tomcat.util.http.LegacyCookieProcessor"/>
+    <WatchedResource>WEB-INF/web.xml</WatchedResource>
+    <WatchedResource>WEB-INF/tomcat-web.xml</WatchedResource>
+    <WatchedResource>${catalina.base}/conf/web.xml</WatchedResource>
+    <Resource auth="Container" connectionInitSql="select 1 from dual" driverClassName="oracle.jdbc.OracleDriver" factory="com.metricstream.util.KMSEncryptedDataSourceFactory" idleTimeout="60000" jdbcUrl="jdbc:oracle:thin:@oracle-service:1521:orcl" leakDetectionThreshold="300000" maximumPoolSize="2000" minimumIdle="100" name="jdbc/oracle/msi" password="r4mJ57QxDVNCR1schK/o8g==" type="javax.sql.DataSource" username="METRICSTREAM"/>
+</Context>
