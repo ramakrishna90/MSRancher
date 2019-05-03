@@ -1,0 +1,4 @@
+apiVersion: v1
+description: M7 Application
+name: ms-apps
+version: 5.0.0

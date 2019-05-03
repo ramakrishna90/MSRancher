@@ -1,0 +1,12 @@
+apiVersion: extensions/v1beta1
+kind: Ingress
+metadata:
+  name: application-ingress
+spec:
+  rules:
+  - host: {{ .Release.Namespace }}.k8s.metricstream.com
+    http:
+      paths:
+      - backend:
+          serviceName: tomcat-service
+          servicePort: 80
