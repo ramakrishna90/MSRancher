@@ -90,12 +90,12 @@ spec:
           valueFrom:
             secretKeyRef:
               name: logzio-token-secret
-              key: logzio-url
+              key: logzio-token
         - name:  LOGZIO_URL
           valueFrom:
             secretKeyRef:
               name: logzio-token-secret
-              key: logzio-token
+              key: logzio-url
         - name: NODE_NAME
           valueFrom:
             fieldRef:

@@ -1,11 +1,11 @@
 label:
   ENVIRONMENT: development
 image:
-  TOMCAT: metricstreaminc/tomcat:9.0.17-alpine-jre8u212-b03-ms
+  TOMCAT: metricstreaminc/tomcat:9.0.17-ubuntu-jdk8u212-b03-ms
   DATAROUTER: metricstreaminc/datarouter:2.17.7-alpine-jre8u212-b03
   ACTIVEMQ: metricstreaminc/activemq:5.14.5-alpine-jre8u212-b03
   ELASTICSEARCH: metricstreaminc/elasticsearch:2.4.1-alpine-jre8u212-b03-ms-7.3.3
-  LIBREOFFICE: metricstreaminc/libreoffice:6.1.4.2-alpine-jre8u212-b03
+  LIBREOFFICE: metricstreaminc/libreoffice:6.2.3.2-alpine-jre8u212-b03
   MONGO: metricstreaminc/mongodb:4.1.10-bionic
   ORACLE: metricstreaminc/oracle:12.2.0.1-ee
   INSTANCE_RESTORE_UPGRADE: metricstreaminc/systemi-oracle-data:7.19.2-12c2
