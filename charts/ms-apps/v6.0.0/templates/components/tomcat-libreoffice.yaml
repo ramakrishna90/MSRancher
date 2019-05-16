@@ -25,7 +25,7 @@ spec:
       port: 8888
       targetPort: 8888
   selector:
-    app: tomcat-deployment
+    app: tomcat
 ---
 apiVersion: apps/v1
 kind: Deployment
