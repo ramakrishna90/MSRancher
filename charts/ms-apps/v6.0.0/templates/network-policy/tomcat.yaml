@@ -19,7 +19,7 @@ spec:
         matchLabels:
           hasNginxPod: "true"
     - ipBlock:
-        cidr: 10.42.2.0/32
+        cidr: 10.42.3.0/32
     ports:
     - protocol: TCP
       port: 8080
