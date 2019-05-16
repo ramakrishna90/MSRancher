@@ -5,7 +5,7 @@ metadata:
 spec:
   podSelector:
     matchLabels:
-      app: tomcat
+      app: tomcat-test
   policyTypes:
   - Ingress
   - Egress

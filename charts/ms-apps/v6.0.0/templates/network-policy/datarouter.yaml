@@ -5,7 +5,7 @@ metadata:
 spec:
   podSelector:
     matchLabels:
-      app: datarouter
+      app: datarouter-test
   policyTypes:
   - Ingress
   - Egress
