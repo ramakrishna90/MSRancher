@@ -136,14 +136,10 @@ spec:
           valueFrom:
             fieldRef:
               fieldPath: metadata.labels['tier']
-        - name: CONTAINER_NAME
-          value: activemq
         - name: NODE_NAME
           valueFrom:
             fieldRef:
               fieldPath: spec.nodeName
-        - name: POD_NAME
-          value: activemq
         - name: NAMESPACE
           valueFrom:
             fieldRef:

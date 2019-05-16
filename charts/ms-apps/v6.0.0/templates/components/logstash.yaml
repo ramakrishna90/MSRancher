@@ -1,20 +1,34 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: logstash
+  name: logstash-deployment
 spec:
   replicas: 1
+  selector:
+    matchLabels:
+      app: logstash
   template:
     metadata:
       name: logstash
       labels:
-        app: logging
+        app: logstash
         container_name: logstash
     spec:
+      volumes:
+      - name: logstash-configuration-configmap-volume
+        configMap:
+          name: logstash-configuration-configmap
       containers:
       - name: logstash-container
         image: {{required "Image Info is mandatory! Read the Project Documentation to understand what and where to configure." .Values.image.LOGSTASH }}
         imagePullPolicy: IfNotPresent
+        volumeMounts:
+        - mountPath: /usr/share/logstash/config/logstash.yml
+          name: logstash-configuration-configmap-volume
+          subPath: logstash.yml
+        - mountPath: /usr/share/logstash/pipeline/logstash.conf
+          name: logstash-configuration-configmap-volume
+          subPath: logstash.conf
       imagePullSecrets:
       - name: container-registry-key-secret
 

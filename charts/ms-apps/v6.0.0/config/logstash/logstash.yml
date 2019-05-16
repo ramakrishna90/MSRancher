@@ -1,4 +1,2 @@
-xpack.monitoring.enabled: true
 http.host: "0.0.0.0"
-xpack.monitoring.elasticsearch.url: https://listener.logz.io:5050
-
+xpack.monitoring.elasticsearch.hosts: [ "https://listener.logz.io:5050" ]
